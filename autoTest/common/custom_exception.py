@@ -2,7 +2,6 @@
 自定义异常处理
 """
 from rest_framework.views import exception_handler
-from rest_framework.views import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.status import HTTP_200_OK
@@ -23,7 +22,7 @@ def custom_exception_handler(exc, context):
         response.data['message'] = '请求成功'
         response.data['code'] = response.status_code
         response.data['success'] = False
-        response.data['data'] = []
+        response.data['data'] = None
 
         if response.status_code == 404:
             try:
@@ -46,6 +45,6 @@ def custom_exception_handler(exc, context):
 
         elif response.status_code == 405:
             response.data['message'] = '请求方法不正确'
-    # else:
-    #     return APIResponse(500, '服务器错误', status=status.HTTP_500_INTERNAL_SERVER_ERROR, success=False)
+    else:
+        return APIResponse(500, '服务器错误', status=status.HTTP_500_INTERNAL_SERVER_ERROR, success=False)
     return response

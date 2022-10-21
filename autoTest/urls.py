@@ -46,11 +46,13 @@ urlpatterns = [
     path('user/', include('user.user_list.urls')),
     path('user/', include('user.user_detail.urls')),
 
+    path('project/', include('project.project_list.urls')),
+
     # token
     # 签发token
-    path('login/', obtain_jwt_token),
+    # path('login/', obtain_jwt_token),
     # 校验token
-    path('verify/', verify_jwt_token),
+    # path('verify/', verify_jwt_token),
     # 刷新token
-    path('refresh/', refresh_jwt_token),
+    # path('refresh/', refresh_jwt_token),
 ]

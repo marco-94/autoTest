@@ -1,14 +1,7 @@
 from django.db import models
 import hashlib
 from django.contrib.auth.models import AbstractUser
-
-
-class BaseModel(models.Model):
-    updated_tm = models.DateTimeField(auto_now=True)
-    created_tm = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        abstract = True
+from autoTest.base.base_model import BaseModel
 
 
 class Account(AbstractUser, BaseModel):

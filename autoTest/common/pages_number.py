@@ -20,9 +20,6 @@ class PageNumber(PageNumberPagination):
             size = self.page_size
 
         return Response(OrderedDict([
-                ('message', '查询成功'),
-                ('code', 200),
-                ('success', True),
                 # 当前结果总条数
                 ('total', self.page.paginator.count),
                 # 当前结果总页数

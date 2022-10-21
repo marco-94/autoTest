@@ -1,5 +1,6 @@
 from django.db import models
-from user.user_list.models import BaseModel, Account
+from user.user_list.models import Account
+from autoTest.base.base_model import BaseModel
 
 
 class UserDetail(BaseModel):

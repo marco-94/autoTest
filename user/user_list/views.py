@@ -6,16 +6,14 @@ from rest_framework.viewsets import GenericViewSet
 from user.user_list.models import Account, UserRole
 from user.user_detail.models import UserDetail
 from user import user_filter, user_serializers
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 from autoTest.common.auth import CustomJsonToken
 from autoTest.common.render_response import APIResponse
 from user.user_serializers import PasswordSerializer
-import json
-import datetime
-from autoTest.common.time_conversion import TimeConversion
+from autoTest.common.search_time import SearchTime
+from autoTest.common.render_response import CustomerRenderer
 
 # jwt-token签发和校验配置
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -25,7 +23,7 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 # Create your views here.
 class UserListView(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     authentication_classes = [CustomJsonToken]
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminUser,)
     queryset = Account.objects.filter(is_delete=0).all()
     serializer_class = user_serializers.UserSerializer
     filter_class = user_filter.UserFilter
@@ -46,9 +44,9 @@ class UserListView(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
         user_dict = {}
         detail_dict = {}
         for item in request.data.items():
-            if item[0] in [field.name for field in Account._meta.get_fields()]:
+            if item in [field.name for field in Account._meta.get_fields()]:
                 user_dict[item[0]] = item[1]
-            elif item[0] in [field.name for field in UserDetail._meta.get_fields()]:
+            elif item in [field.name for field in UserDetail._meta.get_fields()]:
                 detail_dict[item[0]] = item[1]
 
         # 检查账号密码是否有填写
@@ -127,8 +125,8 @@ class LoginView(mixins.UpdateModelMixin, GenericAPIView):
 
 
 class UpdatePasswordView(mixins.UpdateModelMixin, GenericAPIView):
-    authentication_classes = ()
-    permission_classes = ()
+    authentication_classes = [CustomJsonToken]
+    permission_classes = (IsAuthenticated,)
 
     queryset = Account.objects.filter(is_delete=0).all()
     serializer_class = PasswordSerializer
@@ -185,8 +183,9 @@ class UpdatePasswordView(mixins.UpdateModelMixin, GenericAPIView):
 
 
 class UserListV(mixins.ListModelMixin, generics.GenericAPIView):
-    authentication_classes = ()
-    permission_classes = ()
+    authentication_classes = [CustomJsonToken]
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = [CustomerRenderer]
 
     queryset = Account.objects.filter(is_delete=False).all().order_by("-created_tm")
     serializer_class = user_serializers.UserSerializer
@@ -209,7 +208,7 @@ class UserListV(mixins.ListModelMixin, generics.GenericAPIView):
             page = request.data.get('page')
             size = request.data.get('size')
         except Exception:
-            return APIResponse(40014, '参数错误', success=False)
+            return APIResponse(400014, '参数错误', success=False)
 
         if page:  # 判断请求中是否有page和size参数
             request.query_params._mutable = True  # 让查询参数dict变为可编辑
@@ -231,26 +230,7 @@ class UserListV(mixins.ListModelMixin, generics.GenericAPIView):
 
         # 入参时间格式化
         if created_start_time and created_end_time:
-            if len(str(created_start_time)) != 13 or len(str(created_end_time)) != 13:
-                return APIResponse(400015, '时间戳输入不正确', success=False)
-            else:
-                start_date = TimeConversion().time_stamp(created_start_time)
-                end_date = TimeConversion().time_stamp(created_end_time)
-                search_dict["created_tm__range"] = (start_date, end_date)
-
-        elif created_start_time and not created_end_time:
-            if len(str(created_start_time)) != 13:
-                return APIResponse(400015, '时间戳输入不正确', success=False)
-            else:
-                start_date = TimeConversion().time_stamp(created_start_time)
-                search_dict["created_tm__gte"] = start_date
-
-        elif created_end_time and not created_start_time:
-            if len(str(created_end_time)) != 13:
-                return APIResponse(400015, '时间戳输入不正确', success=False)
-            else:
-                end_date = TimeConversion().time_stamp(created_end_time)
-                search_dict["created_tm__lte"] = end_date
+            SearchTime().search_time_conversion(created_start_time, created_end_time, search_dict)
 
         # 由于覆盖了list方法，导致丢失了分页返回，故加上分页返回
         page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
@@ -260,6 +240,6 @@ class UserListV(mixins.ListModelMixin, generics.GenericAPIView):
             serializer = self.get_serializer(page_queryset, many=True)
             return self.get_paginated_response(serializer.data)
 
-        ser_data = self.get_serializer(instance=page_queryset, many=True)
+        serializer_data = self.get_serializer(instance=page_queryset, many=True)
 
-        return self.get_paginated_response(ser_data.data)
+        return self.get_paginated_response(serializer_data.data)

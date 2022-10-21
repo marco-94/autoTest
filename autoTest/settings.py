@@ -83,7 +83,6 @@ CORS_ALLOW_HEADERS = '*'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': "rest_framework.schemas.AutoSchema",
     'DEFAULT_PAGINATION_CLASS': 'autoTest.common.pages_number.PageNumber',
-    # 'DEFAULT_RENDERER_CLASSES': ('autoTest.common.render_response.CustomerRenderer',),
     'EXCEPTION_HANDLER': 'autoTest.common.custom_exception.custom_exception_handler',
 
     # 权限认证：默认JWT认证
@@ -95,6 +94,7 @@ REST_FRAMEWORK = {
         #     'rest_framework.permissions.AllowAny',
         #     'rest_framework.permissions.IsAdminUser',
     ],
+    'DJANGO_SETTINGS_MODULE': "autoTest.settings",
 }
 
 SWAGGER_SETTINGS = {
@@ -125,7 +125,19 @@ SWAGGER_SETTINGS = {
 }
 
 AUTH_USER_MODEL = 'user_list.Account'
-# AUTHENTICATION_BACKENDS = 'django.contrib.auth.backends.ModelBackend'
+
+PASSWORD_HASHERS = (
+
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.BCryptPasswordHasher',
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+    'django.contrib.auth.hashers.CryptPasswordHasher',
+)
+
+
 # jwt载荷中的有效期设置
 JWT_AUTH = {
     # token 有效期
