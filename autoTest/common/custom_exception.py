@@ -45,6 +45,6 @@ def custom_exception_handler(exc, context):
 
         elif response.status_code == 405:
             response.data['message'] = '请求方法不正确'
-    else:
-        return APIResponse(500, '服务器错误', status=status.HTTP_500_INTERNAL_SERVER_ERROR, success=False)
+    # else:
+    #     return APIResponse(500, '服务器错误', status=status.HTTP_500_INTERNAL_SERVER_ERROR, success=False)
     return response

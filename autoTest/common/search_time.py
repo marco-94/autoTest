@@ -8,6 +8,12 @@ from autoTest.common.render_response import APIResponse
 class SearchTime:
     @staticmethod
     def search_time_conversion(created_start_time, created_end_time, search_dict):
+        """
+        :param: created_start_time: 开始时间戳
+        :param: created_end_time: 结束时间戳
+        :param: search_dict: 时间段字典
+        :return:
+        """
         if len(str(created_start_time)) != 13 or len(str(created_end_time)) != 13:
             return APIResponse(400015, '时间戳输入不正确', success=False)
         else:

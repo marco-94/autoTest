@@ -24,7 +24,7 @@ from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token, refresh
 schema_view = get_schema_view(
     openapi.Info(
         title="API接口文档平台",  # 必传
-        default_version='v1',  # 必传
+        default_version='beta-v1',  # 必传
         description="这是一个接口文档",
         terms_of_service="",
         contact=openapi.Contact(email=""),

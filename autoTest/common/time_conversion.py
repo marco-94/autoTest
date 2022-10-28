@@ -8,6 +8,11 @@ import datetime
 class TimeConversion:
     @staticmethod
     def time_stamp(timestamp):
+        """
+        时间戳转换
+        :param timestamp: 时间戳
+        :return:
+        """
         if not len(str(timestamp)) == 13:
             print("时间戳输入不正确！")
             return False

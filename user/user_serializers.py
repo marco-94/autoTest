@@ -58,8 +58,6 @@ class UserSerializer(BaseSerializer):
                   'nickname', "created_tm", "updated_tm", "create_tm_format", "update_tm_format"
                   )
 
-        # exclude = ['date_joined']
-
 
 class UserRoleSerializer(BaseSerializer):
     """用户登录信息"""

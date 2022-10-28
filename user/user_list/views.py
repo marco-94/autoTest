@@ -1,3 +1,5 @@
+from drf_yasg.openapi import Schema
+from drf_yasg.utils import swagger_auto_schema
 import hashlib
 from rest_framework import filters, mixins, generics
 from rest_framework.generics import GenericAPIView
@@ -21,37 +23,36 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
 
 # Create your views here.
-class UserListView(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
+class UserListView(mixins.CreateModelMixin, GenericViewSet):
     authentication_classes = [CustomJsonToken]
-    permission_classes = (IsAdminUser,)
+    permission_classes = ()
     queryset = Account.objects.filter(is_delete=0).all()
     serializer_class = user_serializers.UserSerializer
     filter_class = user_filter.UserFilter
     filter_backends = (rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     ordering = ['-created_tm']
 
+    @swagger_auto_schema(tags=["用户"], operation_id="user_create",
+                         operation_summary='新增用户',
+                         operation_description='时间段查询需要传时间戳',
+                         responses={400011: "用户已存在",
+                                    400012: "用户创建失败",
+                                    400013: "请检查输入字段是否正确(必填字段、未定义字段)",
+                                    400004: "密码长度需要8到20位",
+                                    200: serializer_class})
     def create(self, request, *args, **kwargs):
-        """
-        post: 新增用户
-
-        400011：用户已存在
-
-        400012：用户创建失败
-
-        40013：请检查输入字段是否正确
-        """
         # 新增数据时，需要把入参同时存放到Account和UserDetail表，故先把入参按照models定义，拆分成两个字典，非上述表字段，不处理
         user_dict = {}
         detail_dict = {}
         for item in request.data.items():
-            if item in [field.name for field in Account._meta.get_fields()]:
+            if item[0] in [field.name for field in Account._meta.get_fields()]:
                 user_dict[item[0]] = item[1]
-            elif item in [field.name for field in UserDetail._meta.get_fields()]:
+            elif item[0] in [field.name for field in UserDetail._meta.get_fields()]:
                 detail_dict[item[0]] = item[1]
 
         # 检查账号密码是否有填写
         if "username" not in list(user_dict.keys()) or "password" not in list(user_dict.keys()):
-            return APIResponse(40013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
+            return APIResponse(400013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
         else:
             if len(user_dict["password"]) > 20 or len(user_dict["password"]) < 8:
                 return APIResponse(400004, '密码长度需要8到20位', success=False)
@@ -67,6 +68,7 @@ class UserListView(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
                 # 如果Account表新增数据成功，则通过外键user_id，在UserDetail新增对应的数据
                 if user_create:
                     user_id = Account.objects.filter(username=user_dict["username"]).values('user_id').first()
+                    print("测试=-=--=--=-=", user_id)
                     UserDetail.objects.update_or_create(defaults=detail_dict, user_info_id=user_id["user_id"])
                     return APIResponse(200, '用户创建成功')
             except Exception as e:
@@ -155,24 +157,24 @@ class UpdatePasswordView(mixins.UpdateModelMixin, GenericAPIView):
         md5.update(old_password.encode())
         old_password_md5 = md5.hexdigest()
 
-        try:
-            Account.objects.get(user_id=user_id)
-        except Account.DoesNotExist:
-            return APIResponse(400001, '用户不存在', success=False)
-
-        try:
-            Account.objects.filter(user_id=user_id).get(password=old_password_md5)
-        except Account.DoesNotExist:
-            return APIResponse(400002, '原密码输入不正确', success=False)
-
-        if new_password != confirm_password:
-            return APIResponse(400003, '两次密码输入不一致', success=False)
-
-        if len(new_password) > 20 or len(new_password) < 8:
-            return APIResponse(400004, '密码长度需要8到20位', success=False)
-
-        if old_password == new_password:
-            return APIResponse(400005, '新密码不能与原密码一致', success=False)
+        # try:
+        #     Account.objects.get(user_id=user_id)
+        # except Account.DoesNotExist:
+        #     return APIResponse(400001, '用户不存在', success=False)
+        #
+        # try:
+        #     Account.objects.filter(user_id=user_id).get(password=old_password_md5)
+        # except Account.DoesNotExist:
+        #     return APIResponse(400002, '原密码输入不正确', success=False)
+        #
+        # if new_password != confirm_password:
+        #     return APIResponse(400003, '两次密码输入不一致', success=False)
+        #
+        # if len(new_password) > 20 or len(new_password) < 8:
+        #     return APIResponse(400004, '密码长度需要8到20位', success=False)
+        #
+        # if old_password == new_password:
+        #     return APIResponse(400005, '新密码不能与原密码一致', success=False)
 
         # user = Account.objects.filter(user_id=user_id, password=old_password_md5).first()
         user = self.queryset.filter(user_id=user_id, password=old_password_md5).first()

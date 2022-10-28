@@ -29,7 +29,7 @@ class CustomerRenderer(JSONRenderer):
 
 
 class APIResponse(Response):
-    def __init__(self, code=100, msg='查询成功', data=None, status=None, headers=None, success=True, **kwargs):
+    def __init__(self, code=200, msg='请求成功', data=None, status=None, headers=None, success=True, **kwargs):
         dic = {'code': code, 'message': msg, 'success': success, 'data': None}
         if data:
             dic['data'] = data
