@@ -3,6 +3,7 @@
 """
 import django_filters
 from project.project_list.models import ProjectList
+from project.project_detail.models import ProjectDetail
 
 
 class ProjectListFilter(django_filters.rest_framework.FilterSet):
@@ -15,3 +16,13 @@ class ProjectListFilter(django_filters.rest_framework.FilterSet):
     class Meta:
         model = ProjectList
         fields = ('project_id', 'project_name', 'project_desc', 'created_start_tm', 'created_end_tm')
+
+
+class ProjectDetailFilter(django_filters.rest_framework.FilterSet):
+    project_id = django_filters.NumberFilter(field_name='project_id', lookup_expr='exact')
+    project_img = django_filters.CharFilter(field_name='project_img')
+    project_url = django_filters.CharFilter(field_name='project_url')
+
+    class Meta:
+        model = ProjectDetail
+        fields = '__all__'

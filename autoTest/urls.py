@@ -47,6 +47,7 @@ urlpatterns = [
     path('user/', include('user.user_detail.urls')),
 
     path('project/', include('project.project_list.urls')),
+    path('project/', include('project.project_detail.urls')),
 
     # token
     # 签发token

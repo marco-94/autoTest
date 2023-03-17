@@ -7,5 +7,5 @@ router = routers.SimpleRouter()
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('user_detail', views.UserDetailViewV2.as_view()),
+    path('user_detail', views.UserDetailView.as_view()),
 ]

@@ -23,18 +23,19 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
 
 # Create your views here.
-class UserListView(mixins.CreateModelMixin, GenericViewSet):
+class UserCreateView(mixins.CreateModelMixin, GenericViewSet):
     authentication_classes = [CustomJsonToken]
     permission_classes = ()
     queryset = Account.objects.filter(is_delete=0).all()
-    serializer_class = user_serializers.UserSerializer
+    serializer_class = user_serializers.UserCreateSerializer
     filter_class = user_filter.UserFilter
     filter_backends = (rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     ordering = ['-created_tm']
 
-    @swagger_auto_schema(tags=["用户"], operation_id="user_create",
+    @swagger_auto_schema(tags=["用户"],
+                         operation_id="UserCreate",
                          operation_summary='新增用户',
-                         operation_description='时间段查询需要传时间戳',
+                         operation_description='',
                          responses={400011: "用户已存在",
                                     400012: "用户创建失败",
                                     400013: "请检查输入字段是否正确(必填字段、未定义字段)",
@@ -57,6 +58,9 @@ class UserListView(mixins.CreateModelMixin, GenericViewSet):
             if len(user_dict["password"]) > 20 or len(user_dict["password"]) < 8:
                 return APIResponse(400004, '密码长度需要8到20位', success=False)
 
+        if "email" in list(user_dict.keys()):
+            detail_dict["user_email"] = user_dict["email"]
+
         # 检查用户是否存在
         try:
             Account.objects.get(username=request.data.get('username'))
@@ -68,7 +72,6 @@ class UserListView(mixins.CreateModelMixin, GenericViewSet):
                 # 如果Account表新增数据成功，则通过外键user_id，在UserDetail新增对应的数据
                 if user_create:
                     user_id = Account.objects.filter(username=user_dict["username"]).values('user_id').first()
-                    print("测试=-=--=--=-=", user_id)
                     UserDetail.objects.update_or_create(defaults=detail_dict, user_info_id=user_id["user_id"])
                     return APIResponse(200, '用户创建成功')
             except Exception as e:
@@ -93,6 +96,13 @@ class LoginView(mixins.UpdateModelMixin, GenericAPIView):
     serializer_class = user_serializers.LoginSerializer
     ordering = ['-created_tm']
 
+    @swagger_auto_schema(tags=["用户"],
+                         operation_id="Login",
+                         operation_summary='用户登录',
+                         operation_description='',
+                         responses={400010: "账号密码错误",
+                                    200: serializer_class
+                                    })
     def post(self, request, *args, **kwargs):
         """
         post: 用户登录
@@ -134,6 +144,18 @@ class UpdatePasswordView(mixins.UpdateModelMixin, GenericAPIView):
     serializer_class = PasswordSerializer
     ordering = ['-created_tm']
 
+    @swagger_auto_schema(tags=["用户"],
+                         operation_id="UpdatePassword",
+                         operation_summary='修改用户密码',
+                         operation_description='',
+                         responses={
+                             400001: "用户不存在",
+                             400002: "原密码输入不正确",
+                             400003: "两次密码输入不一致",
+                             400004: "密码长度需要8到20位",
+                             400005: "新密码不能与原密码一致",
+                             200: serializer_class
+                         })
     def put(self, request, *args, **kwargs):
         """
         put: 修改用户密码
@@ -157,44 +179,51 @@ class UpdatePasswordView(mixins.UpdateModelMixin, GenericAPIView):
         md5.update(old_password.encode())
         old_password_md5 = md5.hexdigest()
 
-        # try:
-        #     Account.objects.get(user_id=user_id)
-        # except Account.DoesNotExist:
-        #     return APIResponse(400001, '用户不存在', success=False)
-        #
-        # try:
-        #     Account.objects.filter(user_id=user_id).get(password=old_password_md5)
-        # except Account.DoesNotExist:
-        #     return APIResponse(400002, '原密码输入不正确', success=False)
-        #
-        # if new_password != confirm_password:
-        #     return APIResponse(400003, '两次密码输入不一致', success=False)
-        #
-        # if len(new_password) > 20 or len(new_password) < 8:
-        #     return APIResponse(400004, '密码长度需要8到20位', success=False)
-        #
-        # if old_password == new_password:
-        #     return APIResponse(400005, '新密码不能与原密码一致', success=False)
+        try:
+            Account.objects.get(user_id=user_id)
+        except Account.DoesNotExist:
+            return APIResponse(400001, '用户不存在', success=False)
 
-        # user = Account.objects.filter(user_id=user_id, password=old_password_md5).first()
-        user = self.queryset.filter(user_id=user_id, password=old_password_md5).first()
+        try:
+            Account.objects.filter(user_id=user_id).get(password=old_password_md5)
+        except Account.DoesNotExist:
+            return APIResponse(400002, '原密码输入不正确', success=False)
+
+        if new_password != confirm_password:
+            return APIResponse(400003, '两次密码输入不一致', success=False)
+
+        if len(new_password) > 20 or len(new_password) < 8:
+            return APIResponse(400004, '密码长度需要8到20位', success=False)
+
+        if old_password == new_password:
+            return APIResponse(400005, '新密码不能与原密码一致', success=False)
+
+        user = Account.objects.filter(user_id=user_id, password=old_password_md5).first()
         if user:
             Account.objects.update_or_create(defaults={'password': new_password}, user_id=user_id)
             return APIResponse(200, '密码修改成功', {"user_id": user_id})
         return APIResponse(200, '密码修改成功', {"user_id": user_id})
 
 
-class UserListV(mixins.ListModelMixin, generics.GenericAPIView):
+class UserListView(mixins.ListModelMixin, generics.GenericAPIView):
     authentication_classes = [CustomJsonToken]
     permission_classes = (IsAuthenticated,)
     renderer_classes = [CustomerRenderer]
 
     queryset = Account.objects.filter(is_delete=False).all().order_by("-created_tm")
-    serializer_class = user_serializers.UserSerializer
+    serializer_class = user_serializers.UserListSerializer
     fields = ('user_id', 'username')
     filter_class = user_filter.UserFilter
     filter_backends = (rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
 
+    @swagger_auto_schema(tags=["用户"],
+                         operation_id="UserList",
+                         operation_summary='用户列表',
+                         operation_description='',
+                         responses={
+                             400014: "参数错误",
+                             200: serializer_class
+                         })
     def post(self, request, *args, **kwargs):
         """
         post: 用户列表信息
@@ -245,3 +274,49 @@ class UserListV(mixins.ListModelMixin, generics.GenericAPIView):
         serializer_data = self.get_serializer(instance=page_queryset, many=True)
 
         return self.get_paginated_response(serializer_data.data)
+
+
+class UserDisableView(mixins.UpdateModelMixin, generics.GenericAPIView):
+    authentication_classes = [CustomJsonToken]
+    permission_classes = (IsAuthenticated,)
+    # authentication_classes = []
+    # permission_classes = ()
+
+    queryset = Account.objects.filter(is_delete=False).all()
+    serializer_class = user_serializers.UserDisableSerializer
+
+    @swagger_auto_schema(tags=["用户"],
+                         operation_id="UserDisable",
+                         operation_summary='用户禁用启用',
+                         operation_description='1:启用；2:禁用',
+                         responses={400011: "用户不存在",
+                                    400015: "操作失败，用户状态不正确",
+                                    200: serializer_class})
+    def put(self, request, *args, **kwargs):
+        try:
+            user_id = request.data.get('user_id')
+            is_disable = request.data.get('is_disable')
+        except Exception:
+            return APIResponse(400014, '参数错误', success=False)
+
+        if is_disable == 1:
+            is_disable = False
+        elif is_disable == 2:
+            is_disable = True
+        else:
+            return APIResponse(400014, '参数错误', success=False)
+
+        try:
+            Account.objects.get(user_id=user_id)
+        except Account.DoesNotExist:
+            return APIResponse(400001, '用户不存在', success=False)
+
+        try:
+            Account.objects.filter(user_id=user_id).get(is_disable=is_disable)
+            return APIResponse(400015, '操作失败，用户状态不正确', success=False)
+        except Account.DoesNotExist:
+            user = Account.objects.filter(user_id=user_id).first()
+            if user:
+                Account.objects.update_or_create(defaults={'is_disable': is_disable}, user_id=user_id)
+                return APIResponse(200, '操作成功')
+        return APIResponse(200, '操作成功')
