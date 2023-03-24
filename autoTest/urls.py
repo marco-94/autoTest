@@ -49,6 +49,13 @@ urlpatterns = [
     path('project/', include('project.project_list.urls')),
     path('project/', include('project.project_detail.urls')),
 
+    path('module/', include('module.module_list.urls')),
+    path('module/', include('module.module_detail.urls')),
+
+    path('case_group/', include('caseGroup.urls')),
+
+    path('case/', include('case.case_list.urls')),
+
     # token
     # 签发token
     # path('login/', obtain_jwt_token),

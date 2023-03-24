@@ -39,8 +39,9 @@ class UserCreateView(mixins.CreateModelMixin, GenericViewSet):
                          responses={400011: "用户已存在",
                                     400012: "用户创建失败",
                                     400013: "请检查输入字段是否正确(必填字段、未定义字段)",
+                                    4000014: "账号长度需要5到20位",
                                     400004: "密码长度需要8到20位",
-                                    200: serializer_class})
+                                    200: "新增成功"})
     def create(self, request, *args, **kwargs):
         # 新增数据时，需要把入参同时存放到Account和UserDetail表，故先把入参按照models定义，拆分成两个字典，非上述表字段，不处理
         user_dict = {}
@@ -55,6 +56,8 @@ class UserCreateView(mixins.CreateModelMixin, GenericViewSet):
         if "username" not in list(user_dict.keys()) or "password" not in list(user_dict.keys()):
             return APIResponse(400013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
         else:
+            if len(user_dict["username"]) > 20 or len(user_dict["username"]) < 5:
+                return APIResponse(4000014, '账号长度需要5到20位', success=False)
             if len(user_dict["password"]) > 20 or len(user_dict["password"]) < 8:
                 return APIResponse(400004, '密码长度需要8到20位', success=False)
 

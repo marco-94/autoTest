@@ -77,9 +77,16 @@ INSTALLED_APPS = [
     'project.project_list',
     'project.project_detail',
 
+    # 子项目-模块管理
+    'module.module_list',
+    'module.module_detail',
+
     # 子项目-测试报告
     'report.report_list',
     'report.report_detail',
+
+    # 子项目-用例组
+    'caseGroup',
 ]
 
 # 增加跨域忽略

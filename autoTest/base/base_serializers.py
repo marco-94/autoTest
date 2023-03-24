@@ -8,6 +8,14 @@ import time
 
 class BaseSerializer(serializers.ModelSerializer):
     """基类序列化器"""
+    created_tm = serializers.DateTimeField(required=False,
+                                           read_only=True,
+                                           help_text='创建时间(时间戳)')
+
+    updated_tm = serializers.DateTimeField(required=False,
+                                           read_only=True,
+                                           help_text='更新时间(时间戳)')
+
     create_tm_format = serializers.DateTimeField(source="created_tm",
                                                  format="%Y-%m-%d %H:%M:%S",
                                                  required=False,
@@ -18,14 +26,6 @@ class BaseSerializer(serializers.ModelSerializer):
                                                  required=False,
                                                  read_only=True,
                                                  help_text='更新时间(北京时间)')
-
-    created_tm = serializers.DateTimeField(required=False,
-                                           read_only=True,
-                                           help_text='创建时间(时间戳)')
-
-    updated_tm = serializers.DateTimeField(required=False,
-                                           read_only=True,
-                                           help_text='更新时间(时间戳)')
 
     created_start_tm = serializers.IntegerField(write_only=True, required=False, help_text='创建开始时间')
     created_end_tm = serializers.IntegerField(write_only=True, required=False, help_text='创建结束时间')

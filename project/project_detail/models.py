@@ -9,7 +9,7 @@ class ProjectDetail(BaseModel):
     project_img = models.ImageField('project', upload_to='./img', blank=True, null=True)
     project_url = models.URLField(max_length=256, blank=True, null=True)
     project_info = models\
-        .ForeignKey(to=ProjectList, on_delete=models.DO_NOTHING, db_constraint=False, related_name='project')
+        .ForeignKey(to=ProjectList, on_delete=models.DO_NOTHING, db_constraint=False, related_name='List')
 
     class Meta:
         db_table = 'project_detail'

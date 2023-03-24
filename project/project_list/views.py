@@ -14,6 +14,7 @@ from autoTest.common.render_response import CustomerRenderer
 from autoTest.base.base_views import GetLoginUser
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_jwt.settings import api_settings
+from autoTest.common.set_version import SetVersion
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
@@ -24,7 +25,7 @@ class ProjectListView(mixins.ListModelMixin, generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
     renderer_classes = [CustomerRenderer]
 
-    queryset = ProjectList.objects.filter(is_delete=False).all().order_by("-created_tm")
+    queryset = ProjectList.objects.all().order_by("-created_tm")
     serializer_class = ProjectListSerializer
     filter_class = ProjectListFilter
     filter_backends = (rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
@@ -65,9 +66,9 @@ class ProjectListView(mixins.ListModelMixin, generics.GenericAPIView):
             search_dict["project_name__icontains"] = project_name
         if editor:
             search_dict["editor__icontains"] = editor
-        if is_disable:
+        if is_disable == True:
             search_dict["is_disable"] = 1
-        else:
+        if is_disable == False:
             search_dict["is_disable"] = 0
 
         # 入参时间格式化
@@ -106,11 +107,10 @@ class ProjectCreateViews(mixins.CreateModelMixin, GenericViewSet):
                              500001: "项目名称长度需要1到20位",
                              500002: "项目已存在",
                              500003: "项目创建失败",
-                             200: serializer_class
+                             200: "新增成功"
                          })
     def create(self, request, *args, **kwargs):
         """新增项目"""
-
         # 新增数据时，需要把入参同时存放到ProjectList和ProjectDetail表，故先把入参按照models定义，拆分成两个字典，非上述表字段，不处理
         project_dict = {}
         detail_dict = {}
@@ -134,18 +134,19 @@ class ProjectCreateViews(mixins.CreateModelMixin, GenericViewSet):
             if len(project_dict["project_name"]) > 20 or len(project_dict["project_name"]) < 1:
                 return APIResponse(500001, '项目名称长度需要1到20位', success=False)
 
+        project_name = project_dict["project_name"]
         try:
-            ProjectList.objects.get(project_name=project_dict["project_name"])
+            ProjectList.objects.get(project_name=project_name)
             return APIResponse(500002, '项目已存在', success=False)
         except ProjectList.DoesNotExist:
             try:
                 project_create = ProjectList.objects.create(**project_dict)
                 if project_create:
-                    project_id = ProjectList.objects.filter(project_name=str(project_dict["project_name"])).values('project_id').first()
-                    ProjectDetail.objects.update_or_create(defaults=detail_dict, project_info_id=project_id["project_id"])
+                    project_id = ProjectList.objects.filter(project_name=str(project_name)).values('project_id').first()
+                    ProjectDetail.objects.update_or_create(defaults=detail_dict,
+                                                           project_info_id=project_id["project_id"])
                     return APIResponse(200, '项目创建成功')
-            except Exception as e:
-                print(e)
+            except Exception:
                 return APIResponse(500003, '项目创建失败', success=False)
 
 
@@ -166,7 +167,7 @@ class ProjectEditViews(mixins.UpdateModelMixin, generics.GenericAPIView):
                              400014: "参数错误",
                              400013: "请检查输入字段是否正确(必填字段、未定义字段)",
                              500001: "项目名称长度需要1到20位",
-                             500002: "项目已存在",
+                             500002: "项目名称已存在",
                              500004: "项目不存在",
                              500005: "项目修改失败",
                              200: serializer_class
@@ -196,29 +197,31 @@ class ProjectEditViews(mixins.UpdateModelMixin, generics.GenericAPIView):
             if len(project_dict["project_name"]) > 20 or len(project_dict["project_name"]) < 1:
                 return APIResponse(500001, '项目名称长度需要1到20位', success=False)
 
-        try:
-            ProjectList.objects.get(project_name=project_dict["project_name"])
-            return APIResponse(500002, '项目已存在', success=False)
-        except ProjectList.DoesNotExist:
-            project = ProjectList.objects.filter(project_id=project_dict['project_id'])
-            if project:
-                try:
-                    project_update = ProjectList.objects.filter(project_id=project_dict['project_id']).update(**project_dict)
-                    if project_update:
-                        ProjectDetail.objects.update_or_create(defaults=detail_dict, project_info_id=project_dict['project_id'])
-                        return APIResponse(200, '项目修改成功')
-                except Exception as e:
-                    print(e)
-                    return APIResponse(500005, '项目修改失败', success=False)
-            else:
-                return APIResponse(500005, '项目不存在', success=False)
+        # 非当前修改数据条件下，判断名称是否存在
+        if ProjectList.objects.filter(project_name=project_dict["project_name"]).count() > 0:
+            project_info = ProjectList.objects.filter(project_name=project_dict["project_name"]).values('project_id')
+            # 查询到的同名数据ID与当前修改数据ID不一致时，不允许修改
+            if not str(project_info[0]["project_id"]) == str(project_dict['project_id']):
+                return APIResponse(500002, '项目名称已存在', success=False)
+
+        project = ProjectList.objects.filter(project_id=project_dict['project_id'])
+        if project:
+            try:
+                project_version = project.values("project_version").first()["project_version"]
+                project_dict["project_version"] = SetVersion.model_version(project_version)
+                project_update = project.update_or_create(defaults=project_dict, project_id=project_dict['project_id'])
+                if project_update:
+                    ProjectDetail.objects.update_or_create(defaults=detail_dict, project_info_id=project_dict['project_id'])
+                    return APIResponse(200, '项目修改成功')
+            except Exception:
+                return APIResponse(500005, '项目修改失败', success=False)
+        else:
+            return APIResponse(500005, '项目不存在', success=False)
 
 
 class ProjectDisableView(mixins.UpdateModelMixin, generics.GenericAPIView):
     authentication_classes = [CustomJsonToken]
     permission_classes = (IsAuthenticated,)
-    # authentication_classes = []
-    # permission_classes = ()
 
     queryset = ProjectList.objects.all()
     serializer_class = ProjectDisableSerializer

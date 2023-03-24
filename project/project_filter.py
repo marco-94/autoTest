@@ -1,5 +1,5 @@
 """
-用户管理的全部筛选器
+项目管理的全部筛选器
 """
 import django_filters
 from project.project_list.models import ProjectList

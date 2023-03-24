@@ -72,7 +72,7 @@ class ProjectEditSerializer(BaseSerializer):
 class ProjectDisableSerializer(BaseSerializer):
     """项目禁用启用"""
     project_id = serializers.IntegerField(required=True, help_text='项目ID')
-    is_disable = serializers.BooleanField(required=True, help_text='0:启用；1:禁用')
+    is_disable = serializers.BooleanField(required=True, help_text='1:启用；2:禁用')
 
     class Meta:
         model = ProjectList
