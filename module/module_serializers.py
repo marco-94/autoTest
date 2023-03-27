@@ -52,6 +52,7 @@ class ModuleDetailSerializer(serializers.ModelSerializer):
         model = ModuleDetail
 
         fields = ('module_id',
+                  'module_detail_id',
                   'module_name',
                   'module_desc',
                   'module_img',

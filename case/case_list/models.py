@@ -3,12 +3,13 @@ from autoTest.base.base_model import BaseModel
 from caseGroup.models import CaseGroupList
 from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
+from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
 class CaseList(BaseModel):
     """用例基本信息"""
-    case_id = models.AutoField(help_text="用例id", primary_key=True)
+    case_id = models.BigIntegerField(help_text="用例id", primary_key=True, default=global_id()["work_id"])
     case_name = models.SlugField(max_length=128, help_text="用例名", unique=True)
     case_version = models.CharField(max_length=128, default='V0.0.1', blank=True, help_text="用例版本号")
     case_desc = models.CharField(max_length=512, null=True, help_text="用例描述")

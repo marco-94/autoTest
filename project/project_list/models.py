@@ -1,11 +1,12 @@
 from django.db import models
 from autoTest.base.base_model import BaseModel
+from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
 class ProjectList(BaseModel):
     """项目基本信息"""
-    project_id = models.AutoField(help_text="项目id", primary_key=True)
+    project_id = models.BigIntegerField(help_text="项目id", primary_key=True, default=global_id()["work_id"])
     project_name = models.SlugField(max_length=128, help_text="项目名", unique=True)
     project_version = models.CharField(max_length=128, default='V0.0.1', blank=True, help_text="项目版本号")
     project_desc = models.CharField(max_length=512, null=True, help_text="项目描述")

@@ -2,22 +2,22 @@
 用例管理的全部序列化器
 """
 from rest_framework import serializers
-from case.case_list import CaseList
+from case.case_list.models import CaseList
 from caseGroup.models import CaseGroupList
 from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
 from autoTest.base.base_serializers import BaseSerializer
 
 
-class CaseGroupListSerializer(BaseSerializer):
+class CaseListSerializer(BaseSerializer):
     case_id = serializers.IntegerField(required=False, help_text='用例ID')
 
     is_disable = serializers.BooleanField(read_only=True, help_text='是否禁用(0：启用，1：禁用)')
 
-    case_group = serializers.SlugRelatedField(queryset=CaseGroupList.objects.all(),
-                                              slug_field="case_group_id",
-                                              required=True,
-                                              help_text='所属用例组ID')
+    group = serializers.SlugRelatedField(queryset=CaseGroupList.objects.all(),
+                                         slug_field="case_group_id",
+                                         required=True,
+                                         help_text='所属用例组ID')
 
     module = serializers.SlugRelatedField(queryset=ModuleList.objects.all(),
                                           slug_field="module_id",
@@ -40,7 +40,7 @@ class CaseGroupListSerializer(BaseSerializer):
         fields = ('case_id',
                   'case_name',
                   'case_version',
-                  'case_group',
+                  'group',
                   'module',
                   'project',
                   'created_start_tm',
@@ -60,26 +60,16 @@ class CaseCreateSerializer(BaseSerializer):
 
     case_name = serializers.CharField(required=True, help_text='用例名称')
 
-    case_group = serializers.SlugRelatedField(queryset=CaseGroupList.objects.all(),
-                                              slug_field="case_group_id",
-                                              required=True,
-                                              help_text='所属用例组ID')
-    module = serializers.SlugRelatedField(queryset=ModuleList.objects.all(),
-                                          slug_field="module_id",
-                                          required=True,
-                                          help_text='所属模块ID')
-    project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
-                                           slug_field="project_id",
-                                           required=True,
-                                           help_text='所属项目ID')
+    group = serializers.SlugRelatedField(queryset=CaseGroupList.objects.all(),
+                                         slug_field="case_group_id",
+                                         required=True,
+                                         help_text='所属用例组ID')
 
     class Meta:
         model = CaseList
 
         fields = ('case_name',
-                  'case_group',
-                  'module',
-                  'project',
+                  'group',
                   'case_desc',
                   )
 
@@ -95,16 +85,15 @@ class CaseEditSerializer(BaseSerializer):
 
         fields = ('case_id',
                   'case_name',
-                  'case_desc',
-                  'editor',)
+                  'case_desc')
 
 
 class CaseDisableSerializer(BaseSerializer):
     """用例禁用启用"""
     case_id = serializers.IntegerField(required=True, help_text='用例ID')
-    is_disable = serializers.BooleanField(required=True, help_text='1:启用；2:禁用')
+    is_disable = serializers.IntegerField(required=True, help_text='1:启用；2:禁用')
 
     class Meta:
-        model = CaseGroupList
+        model = CaseList
 
         fields = ('case_id', 'is_disable')

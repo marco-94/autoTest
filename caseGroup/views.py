@@ -134,19 +134,19 @@ class CaseGroupCreateViews(mixins.CreateModelMixin, GenericViewSet):
             if len(case_group_dict["case_group_name"]) > 20 or len(case_group_dict["case_group_name"]) < 1:
                 return APIResponse(700001, '用例组名称长度需要1到20位', success=False)
 
-        if "module" not in list(case_group_dict.keys()) or "project" not in list(case_group_dict.keys()):
+        if "module" not in list(case_group_dict.keys()):
             return APIResponse(400013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
 
         case_group_dict["module_id"] = case_group_dict.pop("module")
-        case_group_dict["project_id"] = case_group_dict.pop("project")
 
         try:
+            ModuleList.objects.get(module_id=case_group_dict["module_id"])
+            # 通过传入的模块ID，在模块列表找到对应的项目ID
             module = ModuleList.objects.filter(module_id=case_group_dict["module_id"])
             project_id = module.values("belong_project_id").first()["belong_project_id"]
-            if not case_group_dict["project_id"] == project_id:
-                return APIResponse(700007, '项目与模块不匹配', success=False)
+            case_group_dict["project_id"] = project_id
         except ModuleList.DoesNotExist:
-            return APIResponse(600004, '项目不存在', success=False)
+            return APIResponse(600004, '模块不存在', success=False)
 
         try:
             CaseGroupList.objects.get(case_group_name=case_group_dict["case_group_name"])

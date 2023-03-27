@@ -1,12 +1,13 @@
 from django.db import models
 from autoTest.base.base_model import BaseModel
 from project.project_list.models import ProjectList
+from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
 class ModuleList(BaseModel):
     """模块基本信息"""
-    module_id = models.AutoField(help_text="模块id", primary_key=True)
+    module_id = models.BigIntegerField(help_text="模块id", primary_key=True, default=global_id()["work_id"])
     module_name = models.SlugField(max_length=128, help_text="模块名", unique=True)
     module_version = models.CharField(max_length=128, default='V0.0.1', blank=True, help_text="模块版本号")
     module_desc = models.CharField(max_length=512, null=True, help_text="模块描述")

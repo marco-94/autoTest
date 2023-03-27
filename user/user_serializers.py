@@ -34,7 +34,7 @@ class PasswordSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(BaseSerializer):
     """用户基本信息"""
-    user_id = serializers.IntegerField(required=False, help_text="用户ID")
+    user_id = serializers.CharField(required=False, help_text="用户ID")
     is_disable = serializers.BooleanField(required=False, help_text="用户状态")
     username = serializers.CharField(required=False, help_text="用户名")
     user_introduction = serializers.CharField(read_only=True, help_text="用户介绍")
@@ -78,7 +78,7 @@ class UserRoleSerializer(BaseSerializer):
         model = UserRole
 
         # 定义需要返回的字段及顺序
-        fields = ('id',
+        fields = ('user_role_id',
                   'user_id',
                   'user_name',
                   'user_token',
@@ -88,6 +88,7 @@ class UserRoleSerializer(BaseSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """用户详情信息"""
+    user_detail_id = serializers.CharField(read_only=True, help_text="用户详情ID")
     user_introduction = serializers.CharField(read_only=True, help_text="用户介绍")
     nickname = serializers.CharField(read_only=True, help_text="昵称")
     user_email = serializers.CharField(read_only=True, help_text="邮箱")
@@ -96,7 +97,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetail
 
-        fields = ('id',
+        fields = ('user_detail_id',
                   'user_id',
                   'user_name',
                   'nickname',

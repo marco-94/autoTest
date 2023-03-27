@@ -53,10 +53,6 @@ class CaseGroupCreateSerializer(BaseSerializer):
                                           slug_field="module_id",
                                           required=True,
                                           help_text='所属模块ID')
-    project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
-                                           slug_field="project_id",
-                                           required=True,
-                                           help_text='所属项目ID')
     # 设置非必填
     case_group_desc = serializers.CharField(required=False, help_text='用例组描述')
     case_group_name = serializers.CharField(required=True, help_text='用例组名称')
@@ -66,7 +62,6 @@ class CaseGroupCreateSerializer(BaseSerializer):
 
         fields = ('case_group_name',
                   'module',
-                  'project',
                   'case_group_desc',
                   )
 

@@ -47,6 +47,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         model = ProjectDetail
 
         fields = ('project_id',
+                  'project_detail_id',
                   'project_name',
                   'project_desc',
                   'project_img',

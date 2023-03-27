@@ -2,10 +2,11 @@ from django.db import models
 import hashlib
 from django.contrib.auth.models import AbstractUser
 from autoTest.base.base_model import BaseModel
+from autoTest.common.global_configuration import global_id
 
 
 class Account(AbstractUser, BaseModel):
-    user_id = models.AutoField(help_text="用户id", primary_key=True)
+    user_id = models.BigIntegerField(help_text="用户id", primary_key=True, default=global_id()["work_id"])
     username = models.SlugField(max_length=128, help_text="用户名", unique=True)
     password = models.CharField(max_length=128, help_text="用户密码")
     is_disable = models.BooleanField(default=False, help_text='是否禁用')
@@ -31,6 +32,7 @@ class Account(AbstractUser, BaseModel):
 
 
 class UserRole(BaseModel):
+    user_role_id = models.BigIntegerField(help_text="用户登录id", primary_key=True, default=global_id()["work_id"])
     user_token = models.CharField(max_length=256, help_text="token")
     user_info = models.ForeignKey(to=Account, on_delete=models.DO_NOTHING, db_constraint=False,
                                   related_name='user_base', unique=True)

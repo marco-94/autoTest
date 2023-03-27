@@ -1,11 +1,13 @@
 from django.db import models
 from autoTest.base.base_model import BaseModel
 from project.project_list.models import ProjectList
+from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
 class ProjectDetail(BaseModel):
     """项目详情信息"""
+    project_detail_id = models.BigIntegerField(help_text="用户详情id", primary_key=True, default=global_id()["work_id"])
     project_img = models.ImageField('project', upload_to='./img', blank=True, null=True)
     project_url = models.URLField(max_length=256, blank=True, null=True)
     project_info = models\
