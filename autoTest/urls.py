@@ -40,7 +40,7 @@ urlpatterns = [
 
     # 接口文档：swagger
     path('docs/', include_docs_urls(title='测试平台接口文档', description='xxx描述')),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('', schema_view.with_ui('swagger', cache_timeout=0)),
 
     # 映射子项目路由
     path('user/', include('user.user_list.urls')),
@@ -55,6 +55,11 @@ urlpatterns = [
     path('case_group/', include('caseGroup.urls')),
 
     path('case/', include('case.case_list.urls')),
+
+    path('interface/', include('interface.urls')),
+
+    path('report/', include('report.report_list.urls')),
+    path('report/', include('report.report_detail.urls')),
 
     # token
     # 签发token

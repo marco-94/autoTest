@@ -8,7 +8,7 @@ from autoTest.common.global_configuration import global_id
 class Account(AbstractUser, BaseModel):
     user_id = models.BigIntegerField(help_text="用户id", primary_key=True, default=global_id()["work_id"])
     username = models.SlugField(max_length=128, help_text="用户名", unique=True)
-    password = models.CharField(max_length=128, help_text="用户密码")
+    password = models.CharField(max_length=512, help_text="用户密码")
     is_disable = models.BooleanField(default=False, help_text='是否禁用')
     is_delete = models.BooleanField(default=False, help_text='逻辑删除')
 

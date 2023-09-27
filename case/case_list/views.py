@@ -40,6 +40,7 @@ class CaseCreateViews(mixins.CreateModelMixin, GenericViewSet):
                              800001: "用例名称长度需要1到20位",
                              800002: "用例已存在",
                              800003: "用例创建失败",
+                             700004: "用例组不存在或已被禁用",
                              200: "新增成功"
                          })
     def create(self, request, *args, **kwargs):
@@ -63,10 +64,11 @@ class CaseCreateViews(mixins.CreateModelMixin, GenericViewSet):
             if len(case_dict["case_name"]) > 20 or len(case_dict["case_name"]) < 1:
                 return APIResponse(800001, '用例名称长度需要1到20位', success=False)
 
+        # 更变字段名
         case_dict["group_id"] = case_dict.pop("group")
 
         try:
-            CaseGroupList.objects.get(case_group_id=case_dict["group_id"])
+            CaseGroupList.objects.get(case_group_id=case_dict["group_id"], is_disable=False, is_delete=False)
             # 通过传入的用例组ID，在用例组列表找到对应的模块和项目ID
             case_group = CaseGroupList.objects.filter(case_group_id=case_dict["group_id"])
             module_id = case_group.values("module_id").first()["module_id"]
@@ -75,7 +77,7 @@ class CaseCreateViews(mixins.CreateModelMixin, GenericViewSet):
             case_dict["project_id"] = project_id
 
         except Exception:
-            return APIResponse(700004, '用例组不存在', success=False)
+            return APIResponse(700004, '用例组不存在或已被禁用', success=False)
 
         try:
             CaseList.objects.get(case_name=case_dict["case_name"])
@@ -104,7 +106,7 @@ class CaseListView(mixins.ListModelMixin, generics.GenericAPIView):
                          operation_description='时间段查询需要传时间戳',
                          responses={"400014": "参数错误", 200: serializer_class})
     def post(self, request, *args, **kwargs):
-        """用例组列表信息 """
+        """用例列表信息 """
         try:
             case_id = request.data.get("case_id")
             module_id = request.data.get("module_id")

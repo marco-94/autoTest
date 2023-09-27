@@ -34,7 +34,7 @@ SECRET_KEY = 'django-insecure-#0tk*u#=elwdmk!j4&(!2rzdc$!og(=^j4$a^-p+)4tc%ddrwz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -87,6 +87,9 @@ INSTALLED_APPS = [
 
     # 子项目-用例组
     'caseGroup',
+
+    'interface',
+
 ]
 
 # 增加跨域忽略
