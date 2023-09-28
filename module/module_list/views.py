@@ -154,10 +154,11 @@ class ModuleCreateViews(mixins.CreateModelMixin, GenericViewSet):
             return APIResponse(600002, '模块已存在', success=False)
         except ModuleList.DoesNotExist:
             try:
+                module_dict["module"] = global_id()["work_id"]
                 module_create = ModuleList.objects.create(**module_dict)
                 if module_create:
+                    detail_dict["module_detail_id"] = global_id()["work_id"]
                     module_id = ModuleList.objects.filter(module_name=module_name).values('module_id').first()
-                    print("module_id", str(module_id))
                     ModuleDetail.objects.update_or_create(defaults=detail_dict, module_info_id=module_id["module_id"])
                     return APIResponse(200, '模块创建成功')
             except Exception:

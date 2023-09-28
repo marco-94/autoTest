@@ -1,11 +1,10 @@
 from django.db import models
 from user.user_list.models import Account
 from autoTest.base.base_model import BaseModel
-from autoTest.common.global_configuration import global_id
 
 
 class UserDetail(BaseModel):
-    user_detail_id = models.BigIntegerField(help_text="用户详情id", primary_key=True, default=global_id()["work_id"])
+    user_detail_id = models.BigIntegerField(help_text="用户详情id", primary_key=True)
     user_email = models.EmailField(blank=True, default="", help_text='用户邮箱')
     user_introduction = models.CharField(max_length=128, help_text="用户简介")
     nickname = models.CharField(max_length=128, help_text="用户昵称")

@@ -15,6 +15,7 @@ from autoTest.base.base_views import GetLoginUser
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_jwt.settings import api_settings
 from autoTest.common.set_version import SetVersion
+from autoTest.common.global_configuration import global_id
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
@@ -140,8 +141,10 @@ class ProjectCreateViews(mixins.CreateModelMixin, GenericViewSet):
             return APIResponse(500002, '项目已存在', success=False)
         except ProjectList.DoesNotExist:
             try:
+                project_dict["project_id"] = global_id()["work_id"]
                 project_create = ProjectList.objects.create(**project_dict)
                 if project_create:
+                    detail_dict["project_detail_id"] = global_id()["work_id"]
                     project_id = ProjectList.objects.filter(project_name=str(project_name)).values('project_id').first()
                     ProjectDetail.objects.update_or_create(defaults=detail_dict,
                                                            project_info_id=project_id["project_id"])
@@ -253,6 +256,7 @@ class ProjectDisableView(mixins.UpdateModelMixin, generics.GenericAPIView):
             return APIResponse(500004, '项目不存在', success=False)
 
         try:
+            print("project_id", project_id)
             ProjectList.objects.filter(project_id=project_id).get(is_disable=is_disable)
             return APIResponse(500006, '操作失败，项目状态不正确', success=False)
         except ProjectList.DoesNotExist:

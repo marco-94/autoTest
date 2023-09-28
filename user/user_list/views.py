@@ -16,6 +16,7 @@ from autoTest.common.render_response import APIResponse
 from user.user_serializers import PasswordSerializer
 from autoTest.common.search_time import SearchTime
 from autoTest.common.render_response import CustomerRenderer
+from autoTest.common.global_configuration import global_id
 
 # jwt-token签发和校验配置
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -71,9 +72,11 @@ class UserCreateView(mixins.CreateModelMixin, GenericViewSet):
         except Account.DoesNotExist:
             # 如果不存在，先调用Account表新增数据
             try:
+                user_dict["user_id"] = global_id()["work_id"]
                 user_create = Account.objects.update_or_create(defaults=user_dict, username=user_dict["username"])
                 # 如果Account表新增数据成功，则通过外键user_id，在UserDetail新增对应的数据
                 if user_create:
+                    detail_dict["user_detail_id"] = global_id()["work_id"]
                     user_id = Account.objects.filter(username=user_dict["username"]).values('user_id').first()
                     UserDetail.objects.update_or_create(defaults=detail_dict, user_info_id=user_id["user_id"])
                     return APIResponse(200, '用户创建成功')

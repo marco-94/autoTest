@@ -16,6 +16,7 @@ from autoTest.base.base_views import GetLoginUser
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_jwt.settings import api_settings
 from autoTest.common.set_version import SetVersion
+from autoTest.common.global_configuration import global_id
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
@@ -84,6 +85,7 @@ class CaseCreateViews(mixins.CreateModelMixin, GenericViewSet):
             return APIResponse(800002, '用例已存在', success=False)
         except CaseList.DoesNotExist:
             try:
+                case_dict["case_id"] = global_id()["work_id"]
                 CaseList.objects.create(**case_dict)
                 return APIResponse(200, '用例创建成功')
             except Exception:

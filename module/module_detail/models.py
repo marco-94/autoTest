@@ -1,13 +1,12 @@
 from django.db import models
 from autoTest.base.base_model import BaseModel
 from module.module_list.models import ModuleList
-from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
 class ModuleDetail(BaseModel):
     """模块详情信息"""
-    module_detail_id = models.BigIntegerField(help_text="模块详情id", primary_key=True, default=global_id()["work_id"])
+    module_detail_id = models.BigIntegerField(help_text="模块详情id", primary_key=True)
     module_img = models.ImageField('module', upload_to='./img', blank=True, null=True)
     module_url = models.URLField(max_length=256, blank=True, null=True)
     module_info = models\

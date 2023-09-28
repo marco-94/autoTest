@@ -4,7 +4,6 @@ from case.case_list.models import CaseList
 from caseGroup.models import CaseGroupList
 from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
-from autoTest.common.global_configuration import global_id
 
 HTTP_CHOICE = (
     ('HTTP', 'HTTP'),
@@ -39,7 +38,7 @@ class ErpLogin(BaseModel):
 
 
 class ApiInfo(BaseModel):
-    api_id = models.BigIntegerField(help_text="接口id", primary_key=True, default=global_id()["work_id"])
+    api_id = models.BigIntegerField(help_text="接口id", primary_key=True)
     api_name = models.SlugField(max_length=128, help_text="接口名称", unique=True)
     http_type = models.CharField(max_length=50, default='HTTP', verbose_name='http/https', choices=HTTP_CHOICE)
     request_type = models.CharField(max_length=50, verbose_name='请求方式', choices=REQUEST_TYPE_CHOICE)

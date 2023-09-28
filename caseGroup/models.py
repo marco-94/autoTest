@@ -2,13 +2,12 @@ from django.db import models
 from autoTest.base.base_model import BaseModel
 from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
-from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
 class CaseGroupList(BaseModel):
     """用例组基本信息"""
-    case_group_id = models.BigIntegerField(help_text="用例组id", primary_key=True, default=global_id()["work_id"])
+    case_group_id = models.BigIntegerField(help_text="用例组id", primary_key=True)
     case_group_name = models.SlugField(max_length=128, help_text="用例组名", unique=True)
     case_group_version = models.CharField(max_length=128, default='V0.0.1', blank=True, help_text="用例组版本号")
     case_group_desc = models.CharField(max_length=512, null=True, help_text="用例组描述")
