@@ -25,6 +25,11 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'case'))
 sys.path.insert(0, os.path.join(BASE_DIR, 'project'))
 sys.path.insert(0, os.path.join(BASE_DIR, 'report'))
 
+# 图像文件存储目录
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# 图像URL
+MEDIA_URL = '/media/'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -195,6 +200,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'autoTest.common.global_configuration.global_variable',
+                'django.template.context_processors.media',
             ],
         },
     },

@@ -64,3 +64,21 @@ class ApiInfo(BaseModel):
         self.is_delete = True
         self.save()
 
+
+class OssFile(BaseModel):
+    file_id = models.BigIntegerField(help_text="文件id", primary_key=True)
+    file_path = models.FileField(upload_to='uploads/', verbose_name='文件路径')
+    file_name = models.CharField(max_length=512, blank=True, null=True, verbose_name='文件名')
+    file_type = models.CharField(max_length=512, blank=True, null=True, verbose_name='文件类型')
+    file_size = models.CharField(max_length=512, blank=True, null=True, verbose_name='文件大小')
+    remark = models.TextField(blank=True, null=True, verbose_name='备注信息')
+    editor = models.CharField(max_length=128, default='admin', help_text="编辑者")
+
+    def __str__(self):
+        return str(self.file_path)
+
+    class Meta:
+        db_table = 'oss_info'
+        verbose_name_plural = "文件信息"
+        verbose_name = verbose_name_plural
+        unique_together = ('file_path',)

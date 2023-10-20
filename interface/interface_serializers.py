@@ -2,7 +2,7 @@
 接口管理的全部序列化器
 """
 from rest_framework import serializers
-from interface.models import ErpLogin, ApiInfo
+from interface.models import *
 from autoTest.base.base_serializers import BaseSerializer
 
 
@@ -38,3 +38,30 @@ class InterfaceQuickTestSerializer(BaseSerializer):
             'headers',
             'params',
             'data')
+
+
+class OssFileSerializer(BaseSerializer):
+    """文件上传"""
+    file_id = serializers.IntegerField(required=False, help_text='文件ID(无需填写)')
+    file = serializers.FileField(source="file_path", required=True, help_text="选择文件")
+    remark = serializers.CharField(required=False, help_text='备注信息')
+    editor = serializers.CharField(required=False, help_text='创建人/更新人(无需填写)')
+    file_size = serializers.CharField(required=False, help_text='文件大小(无需填写)')
+    file_type = serializers.CharField(required=False, help_text='文件类型(无需填写)')
+    file_name = serializers.CharField(required=False, help_text='文件名(无需填写)')
+
+    class Meta:
+        model = OssFile
+
+        fields = (
+            'file',
+            'remark',
+            'editor',
+            'file_id',
+            'file_size',
+            'file_type',
+            'file_name',
+            "created_tm",
+            "updated_tm",
+            "create_tm_format",
+            "update_tm_format")

@@ -14,12 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from rest_framework.documentation import include_docs_urls
 from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token, refresh_jwt_token
+from django.conf import settings
+from django.views.static import serve
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -37,6 +39,9 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # 图像存储
+    re_path(r'media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 
     # 接口文档：swagger
     path('docs/', include_docs_urls(title='测试平台接口文档', description='xxx描述')),

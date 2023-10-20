@@ -12,13 +12,20 @@ from autoTest.common.password_encryption import PasswordEncryption
 from autoTest.common.requset_method import RequestMethod
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_jwt.settings import api_settings
+from rest_framework.parsers import MultiPartParser, FileUploadParser
+from autoTest.base.base_views import GetLoginUser
 from interface.models import *
 from interface.interface_serializers import *
 import requests
 import ast
 import json
+import chardet
 from retrying import retry
+from rest_framework import status
 from autoTest.common.utils import interface_assert_equal, get_domain
+from rest_framework.viewsets import ModelViewSet
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from autoTest.common.global_configuration import global_id
 
 
 # Create your views here.
@@ -204,3 +211,39 @@ class InterfaceQuickTestView(mixins.ListModelMixin, generics.GenericAPIView):
                 return APIResponse(400013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
             response = RequestMethod().delete_method(url=api_address, headers=headers, data=data)
             return Response(response.json())
+
+
+class OssUploadsView(mixins.CreateModelMixin, generics.GenericAPIView):
+    parser_classes = (MultiPartParser, FileUploadParser,)
+    authentication_classes = [CustomJsonToken]
+    permission_classes = (IsAuthenticated,)
+    queryset = OssFile.objects.all()
+    serializer_class = OssFileSerializer
+
+    @swagger_auto_schema(tags=['接口'],
+                         operation_id="OssUploads",
+                         operation_summary='文件上传',
+                         operation_description='',
+                         responses={200: "上传成功"})
+    def post(self, request, *args, **kwargs):
+        """文件上传"""
+        data = request.data
+
+        # 获取当前登录用户信息
+        user = GetLoginUser().get_login_user(request)
+        if user["code"] == 200:
+            data["editor"] = user["username"]
+        else:
+            return Response(user)
+
+        data["file_id"] = global_id()["work_id"]
+
+        upload_object = request.FILES.get("file")
+        data["file_name"] = upload_object.name.split('.')[0]
+        data["file_type"] = upload_object.content_type
+        data["file_size"] = upload_object.size
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return APIResponse(200, '上传成功', success=True, data=serializer.data)
