@@ -7,15 +7,32 @@ from project.project_detail.models import ProjectDetail
 from autoTest.base.base_serializers import BaseSerializer
 
 
+class ProjectCreateSerializer(BaseSerializer):
+    """项目新增"""
+    project_name = serializers.CharField(required=True, help_text='项目名称')
+    project_desc = serializers.CharField(required=False, help_text='项目描述')
+    project_img = serializers.CharField(required=False, write_only=True, help_text='项目图片')
+    project_url = serializers.CharField(required=False, write_only=True, help_text='项目链接')
+    editor = serializers.CharField(required=False, read_only=True, help_text='创建人/更新人')
+
+    class Meta:
+        model = ProjectList
+
+        fields = ('project_name',
+                  'project_img',
+                  'project_url',
+                  'project_desc',
+                  'editor')
+
+
 class ProjectListSerializer(BaseSerializer):
     project_id = serializers.IntegerField(required=False, help_text='项目ID')
 
     # 设置只读只写
-    is_disable = serializers.BooleanField(read_only=True, help_text='是否禁用(0：启用，1：禁用)')
-
+    is_disable = serializers.BooleanField(required=False, help_text='是否禁用(0：启用，1：禁用)')
     # 设置非必填
     project_desc = serializers.CharField(required=False, help_text='项目描述')
-    project_name = serializers.CharField(required=True, help_text='项目名称')
+    project_name = serializers.CharField(required=False, help_text='项目名称')
     editor = serializers.CharField(required=False, help_text='创建人/更新人')
     project_version = serializers.CharField(read_only=True, required=False, help_text='项目版本')
 
@@ -37,9 +54,10 @@ class ProjectListSerializer(BaseSerializer):
                   )
 
 
-class ProjectDetailSerializer(serializers.ModelSerializer):
+class ProjectDetailSerializer(BaseSerializer):
     """项目详情信息"""
     project_id = serializers.IntegerField(required=True, help_text='项目ID')
+    project_detail_id = serializers.IntegerField(read_only=True, help_text='项目详情ID')
     project_img = serializers.CharField(read_only=True, help_text='项目图片')
     project_url = serializers.CharField(read_only=True, help_text='项目链接')
 
@@ -52,28 +70,36 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
                   'project_desc',
                   'project_img',
                   'project_url',
-                  'editor',)
+                  'editor',
+                  "created_tm",
+                  "updated_tm",
+                  "create_tm_format",
+                  "update_tm_format"
+                  )
 
 
 class ProjectEditSerializer(BaseSerializer):
     """编辑项目信息"""
     project_id = serializers.IntegerField(required=True, help_text='项目ID')
     project_desc = serializers.CharField(required=False, help_text='项目描述')
-    project_name = serializers.CharField(required=True, help_text='项目名称')
+    project_name = serializers.CharField(required=False, help_text='项目名称')
+    project_img = serializers.CharField(required=False, help_text='项目图片')
+    project_url = serializers.CharField(required=False, help_text='项目链接')
 
     class Meta:
-        model = ProjectDetail
+        model = ProjectList
 
         fields = ('project_id',
                   'project_name',
                   'project_desc',
-                  'editor',)
+                  'project_img',
+                  'project_url')
 
 
 class ProjectDisableSerializer(BaseSerializer):
     """项目禁用启用"""
     project_id = serializers.IntegerField(required=True, help_text='项目ID')
-    is_disable = serializers.BooleanField(required=True, help_text='1:启用；2:禁用')
+    is_disable = serializers.BooleanField(required=True, help_text='1/false：启用；2/true：禁用')
 
     class Meta:
         model = ProjectList

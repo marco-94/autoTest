@@ -3,6 +3,7 @@ from autoTest.base.base_model import BaseModel
 from caseGroup.models import CaseGroupList
 from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
+from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
@@ -41,3 +42,9 @@ class CaseList(BaseModel):
         """重写数据库删除方法实现逻辑删除"""
         self.is_delete = True
         self.save()
+
+    def save(self, *args, **kwargs):
+        """新增时，自定义主键"""
+        if not self.case_id:
+            self.case_id = global_id()["work_id"]
+        return super(CaseList, self).save(*args, **kwargs)

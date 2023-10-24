@@ -13,7 +13,7 @@ class ReportListSerializer(BaseSerializer):
 
     # 设置非必填
     report_desc = serializers.CharField(required=False, help_text='报告描述')
-    report_name = serializers.CharField(required=True, help_text='报告名称')
+    report_name = serializers.CharField(required=False, help_text='报告名称')
     editor = serializers.CharField(required=False, help_text='创建人/更新人')
 
     case = serializers.SlugRelatedField(queryset=CaseList.objects.all(),

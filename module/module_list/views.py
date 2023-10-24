@@ -8,7 +8,7 @@ from autoTest.common.auth import CustomJsonToken
 from project.project_list.models import ProjectList
 from module.module_list.models import ModuleList
 from module.module_detail.models import ModuleDetail
-from module.module_serializers import ModuleListSerializer, ModuleEditSerializer, ModuleDisableSerializer
+from module.module_serializers import *
 from module.module_filter import ModuleListFilter
 from autoTest.common.search_time import SearchTime
 from autoTest.common.render_response import CustomerRenderer
@@ -97,7 +97,7 @@ class ModuleCreateViews(mixins.CreateModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
 
     queryset = ModuleList.objects.all()
-    serializer_class = ModuleListSerializer
+    serializer_class = ModuleCreateSerializer
     filter_class = ModuleListFilter
     filter_backends = (rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
 
@@ -154,10 +154,8 @@ class ModuleCreateViews(mixins.CreateModelMixin, GenericViewSet):
             return APIResponse(600002, '模块已存在', success=False)
         except ModuleList.DoesNotExist:
             try:
-                module_dict["module"] = global_id()["work_id"]
                 module_create = ModuleList.objects.create(**module_dict)
                 if module_create:
-                    detail_dict["module_detail_id"] = global_id()["work_id"]
                     module_id = ModuleList.objects.filter(module_name=module_name).values('module_id').first()
                     ModuleDetail.objects.update_or_create(defaults=detail_dict, module_info_id=module_id["module_id"])
                     return APIResponse(200, '模块创建成功')

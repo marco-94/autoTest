@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'case'))
 sys.path.insert(0, os.path.join(BASE_DIR, 'project'))
 sys.path.insert(0, os.path.join(BASE_DIR, 'report'))
 
-# 图像文件存储目录
+# 图像文件存储目录权限
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # 图像URL
 MEDIA_URL = '/media/'

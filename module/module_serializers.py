@@ -8,11 +8,31 @@ from module.module_detail.models import ModuleDetail
 from autoTest.base.base_serializers import BaseSerializer
 
 
+class ModuleCreateSerializer(BaseSerializer):
+    module_name = serializers.CharField(required=True, help_text='模块名称')
+    module_desc = serializers.CharField(required=False, help_text='模块描述')
+    module_img = serializers.CharField(required=False, help_text='模块图片')
+    module_url = serializers.CharField(required=False, help_text='模块链接')
+    belong_project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
+                                                  slug_field="project_id",
+                                                  required=True,
+                                                  help_text='所属项目ID')
+
+    class Meta:
+        model = ModuleList
+
+        fields = ('module_name',
+                  'belong_project',
+                  'module_img',
+                  'module_url',
+                  'module_desc')
+
+
 class ModuleListSerializer(BaseSerializer):
     module_id = serializers.IntegerField(required=False, help_text='模块ID')
 
     # 设置只读只写
-    is_disable = serializers.BooleanField(read_only=True, help_text='是否禁用(0：启用，1：禁用)')
+    is_disable = serializers.BooleanField(required=False, help_text='是否禁用(0：启用，1：禁用)')
     belong_project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
                                                   slug_field="project_id",
                                                   required=True,
@@ -42,9 +62,10 @@ class ModuleListSerializer(BaseSerializer):
                   )
 
 
-class ModuleDetailSerializer(serializers.ModelSerializer):
+class ModuleDetailSerializer(BaseSerializer):
     """模块详情信息"""
     module_id = serializers.IntegerField(required=True, help_text='模块ID')
+    module_detail_id = serializers.IntegerField(read_only=True, help_text='模块详情ID')
     module_img = serializers.CharField(read_only=True, help_text='模块图片')
     module_url = serializers.CharField(read_only=True, help_text='模块链接')
 
@@ -57,7 +78,12 @@ class ModuleDetailSerializer(serializers.ModelSerializer):
                   'module_desc',
                   'module_img',
                   'module_url',
-                  'editor',)
+                  'editor',
+                  "created_tm",
+                  "updated_tm",
+                  "create_tm_format",
+                  "update_tm_format"
+                  )
 
 
 class ModuleEditSerializer(BaseSerializer):

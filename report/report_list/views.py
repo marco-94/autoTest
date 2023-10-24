@@ -19,7 +19,6 @@ from autoTest.base.base_views import GetLoginUser
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_jwt.settings import api_settings
 from autoTest.common.set_version import SetVersion
-from autoTest.common.global_configuration import global_id
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
@@ -36,7 +35,8 @@ class ReportCreateViews(mixins.CreateModelMixin, GenericViewSet):
     @swagger_auto_schema(tags=['报告'],
                          operation_id="ReportCreate",
                          operation_summary='新增报告',
-                         operation_description='报告名称必填且唯一，所属用例和所属用例组只能存在其中一个',
+                         operation_description='报告名称必填且唯一，所属用例和所属用例组只能存在其中一个，且必填; \n'
+                                               'editor字段为执行用例/用例组人员，如为空，则为当前登录人',
                          responses={
                              400014: "参数错误",
                              600004: "项目不存在",
@@ -58,7 +58,7 @@ class ReportCreateViews(mixins.CreateModelMixin, GenericViewSet):
                 report_dict[item[0]] = item[1]
 
         # 检查用例名称和所属项目组是否有填写
-        if "report_name" not in list(report_dict.keys()) or "editor" not in list(report_dict.keys()):
+        if "report_name" not in list(report_dict.keys()):
             return APIResponse(400013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
         else:
             if len(report_dict["report_name"]) > 20 or len(report_dict["report_name"]) < 1:
@@ -89,12 +89,18 @@ class ReportCreateViews(mixins.CreateModelMixin, GenericViewSet):
             except Exception:
                 return APIResponse(800004, '用例不存在或已被禁用', success=False)
 
+        # 获取当前登录用户信息
+        user = GetLoginUser().get_login_user(request)
+        if user["code"] == 200 and "editor" not in list(report_dict.keys()):
+            report_dict["editor"] = user["username"]
+        else:
+            return Response(user)
+
         try:
             ReportList.objects.get(report_name=report_dict["report_name"])
             return APIResponse(900002, '报告已存在', success=False)
         except ReportList.DoesNotExist:
             try:
-                report_dict["report_id"] = global_id()["work_id"]
                 ReportList.objects.create(**report_dict)
                 return APIResponse(200, '报告创建成功')
             except Exception:

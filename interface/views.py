@@ -247,3 +247,50 @@ class OssUploadsView(mixins.CreateModelMixin, generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return APIResponse(200, '上传成功', success=True, data=serializer.data)
+
+
+class OssUploadV2sView(mixins.CreateModelMixin, generics.GenericAPIView):
+    parser_classes = (MultiPartParser, FileUploadParser,)
+    authentication_classes = [CustomJsonToken]
+    permission_classes = (IsAuthenticated,)
+    queryset = OssFiles.objects.all()
+    serializer_class = OssFilesSerializer
+
+    @swagger_auto_schema(tags=['接口'],
+                         operation_id="OssUploadsV2",
+                         operation_summary='文件上传',
+                         operation_description='',
+                         responses={200: serializer_class})
+    def post(self, request, *args, **kwargs):
+        """文件上传"""
+        data = request.data
+
+        # 获取当前登录用户信息
+        user = GetLoginUser().get_login_user(request)
+        if user["code"] == 200:
+            data["editor"] = user["username"]
+        else:
+            return Response(user)
+
+        upload_object = request.FILES.get("file")
+        data["file_name"] = upload_object.name.split('.')[0]
+        data["file_type"] = upload_object.content_type
+        data["file_size"] = upload_object.size
+
+        # 上传文件
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # 更新/补全文件信息
+        update_data = data
+        del update_data["file"]
+        self.serializer_class = OssFileUpdateSerializer
+        OssFiles.objects.update_or_create(defaults=data, file_id=serializer.data["file_id"])
+
+        # 查询上传的文件信息并返回
+        oss_info = OssFiles.objects.get(file_id=serializer.data["file_id"])
+        oss_serializers = OssFilesSerializer(oss_info)
+        result = oss_serializers.data
+        result["file"] = serializer.data["file"]
+        return APIResponse(200, '上传成功', success=True, data=result)

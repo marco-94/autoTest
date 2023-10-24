@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from autoTest.common.auth import CustomJsonToken
 from project.project_list.models import ProjectList
 from project.project_detail.models import ProjectDetail
-from project.project_serializers import ProjectListSerializer, ProjectEditSerializer, ProjectDisableSerializer
+from project.project_serializers import *
 from project.project_filter import ProjectListFilter
 from autoTest.common.search_time import SearchTime
 from autoTest.common.render_response import CustomerRenderer
@@ -67,9 +67,9 @@ class ProjectListView(mixins.ListModelMixin, generics.GenericAPIView):
             search_dict["project_name__icontains"] = project_name
         if editor:
             search_dict["editor__icontains"] = editor
-        if is_disable == True:
+        if is_disable:
             search_dict["is_disable"] = 1
-        if is_disable == False:
+        if not is_disable:
             search_dict["is_disable"] = 0
 
         # 入参时间格式化
@@ -94,7 +94,7 @@ class ProjectCreateViews(mixins.CreateModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
 
     queryset = ProjectList.objects.all()
-    serializer_class = ProjectListSerializer
+    serializer_class = ProjectCreateSerializer
     filter_class = ProjectListFilter
     filter_backends = (rest_framework.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
 
@@ -141,10 +141,8 @@ class ProjectCreateViews(mixins.CreateModelMixin, GenericViewSet):
             return APIResponse(500002, '项目已存在', success=False)
         except ProjectList.DoesNotExist:
             try:
-                project_dict["project_id"] = global_id()["work_id"]
                 project_create = ProjectList.objects.create(**project_dict)
                 if project_create:
-                    detail_dict["project_detail_id"] = global_id()["work_id"]
                     project_id = ProjectList.objects.filter(project_name=str(project_name)).values('project_id').first()
                     ProjectDetail.objects.update_or_create(defaults=detail_dict,
                                                            project_info_id=project_id["project_id"])
@@ -232,10 +230,10 @@ class ProjectDisableView(mixins.UpdateModelMixin, generics.GenericAPIView):
     @swagger_auto_schema(tags=["项目"],
                          operation_id="ProjectDisable",
                          operation_summary='项目禁用启用',
-                         operation_description='1:启用；2:禁用',
+                         operation_description='1/false：启用；2/true：禁用',
                          responses={500004: "项目不存在",
                                     500006: "操作失败，项目状态不正确",
-                                    200: serializer_class})
+                                    200: "操作成功"})
     def put(self, request, *args, **kwargs):
         try:
             project_id = request.data.get('project_id')
@@ -256,7 +254,6 @@ class ProjectDisableView(mixins.UpdateModelMixin, generics.GenericAPIView):
             return APIResponse(500004, '项目不存在', success=False)
 
         try:
-            print("project_id", project_id)
             ProjectList.objects.filter(project_id=project_id).get(is_disable=is_disable)
             return APIResponse(500006, '操作失败，项目状态不正确', success=False)
         except ProjectList.DoesNotExist:

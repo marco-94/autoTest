@@ -1,5 +1,6 @@
 from django.db import models
 from autoTest.base.base_model import BaseModel
+from autoTest.common.global_configuration import global_id
 
 
 # Create your models here.
@@ -22,3 +23,9 @@ class ProjectList(BaseModel):
         """重写数据库删除方法实现逻辑删除"""
         self.is_delete = True
         self.save()
+
+    def save(self, *args, **kwargs):
+        """新增时，自定义主键"""
+        if not self.project_id:
+            self.project_id = global_id()["work_id"]
+        return super(ProjectList, self).save(*args, **kwargs)

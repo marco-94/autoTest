@@ -153,8 +153,8 @@ class CaseGroupCreateViews(mixins.CreateModelMixin, GenericViewSet):
             CaseGroupList.objects.get(case_group_name=case_group_dict["case_group_name"])
             return APIResponse(700002, '用例组已存在', success=False)
         except CaseGroupList.DoesNotExist:
+            print(case_group_dict)
             try:
-                case_group_dict["case_group_id"] = global_id()["work_id"]
                 CaseGroupList.objects.create(**case_group_dict)
                 return APIResponse(200, '用例组创建成功')
             except Exception:

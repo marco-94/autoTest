@@ -1,9 +1,11 @@
 from django.db import models
-from autoTest.base.base_model import BaseModel
+from autoTest.base.base_model import *
 from case.case_list.models import CaseList
 from caseGroup.models import CaseGroupList
 from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
+from autoTest.common.file_storage import FileStorage
+from autoTest.common.global_configuration import global_id
 
 HTTP_CHOICE = (
     ('HTTP', 'HTTP'),
@@ -79,6 +81,25 @@ class OssFile(BaseModel):
 
     class Meta:
         db_table = 'oss_info'
+        verbose_name_plural = "文件信息"
+        verbose_name = verbose_name_plural
+        unique_together = ('file_path',)
+
+
+class OssFiles(BaseModel):
+    file_id = models.AutoField(help_text="文件id", primary_key=True)
+    file_path = models.FileField(upload_to='uploads/', verbose_name='文件路径', storage=FileStorage)
+    file_name = models.CharField(max_length=512, blank=True, null=True, verbose_name='文件名')
+    file_type = models.CharField(max_length=512, blank=True, null=True, verbose_name='文件类型')
+    file_size = models.CharField(max_length=512, blank=True, null=True, verbose_name='文件大小')
+    remark = models.TextField(blank=True, null=True, verbose_name='备注信息')
+    editor = models.CharField(max_length=128, default='admin', help_text="编辑者")
+
+    def __str__(self):
+        return str(self.file_path)
+
+    class Meta:
+        db_table = 'oss_file'
         verbose_name_plural = "文件信息"
         verbose_name = verbose_name_plural
         unique_together = ('file_path',)

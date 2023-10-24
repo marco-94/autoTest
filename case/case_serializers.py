@@ -16,21 +16,21 @@ class CaseListSerializer(BaseSerializer):
 
     group = serializers.SlugRelatedField(queryset=CaseGroupList.objects.all(),
                                          slug_field="case_group_id",
-                                         required=True,
+                                         required=False,
                                          help_text='所属用例组ID')
 
     module = serializers.SlugRelatedField(queryset=ModuleList.objects.all(),
                                           slug_field="module_id",
-                                          required=True,
+                                          required=False,
                                           help_text='所属模块ID')
 
     project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
                                            slug_field="project_id",
-                                           required=True,
+                                           required=False,
                                            help_text='所属项目ID')
     # 设置非必填
     case_desc = serializers.CharField(required=False, help_text='用例描述')
-    case_name = serializers.CharField(required=True, help_text='用例名称')
+    case_name = serializers.CharField(required=False, help_text='用例名称')
     editor = serializers.CharField(required=False, help_text='创建人/更新人')
     case_version = serializers.CharField(read_only=True, required=False, help_text='用例版本')
 

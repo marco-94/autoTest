@@ -13,4 +13,5 @@ urlpatterns = [
     path('erp_login', views.ErpLoginView.as_view()),
     path('interface_quick_test', views.InterfaceQuickTestView.as_view()),
     path('oss_uploads', views.OssUploadsView.as_view()),
+    path('oss_uploadsV2', views.OssUploadV2sView.as_view()),
 ]

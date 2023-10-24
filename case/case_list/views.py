@@ -85,7 +85,6 @@ class CaseCreateViews(mixins.CreateModelMixin, GenericViewSet):
             return APIResponse(800002, '用例已存在', success=False)
         except CaseList.DoesNotExist:
             try:
-                case_dict["case_id"] = global_id()["work_id"]
                 CaseList.objects.create(**case_dict)
                 return APIResponse(200, '用例创建成功')
             except Exception:

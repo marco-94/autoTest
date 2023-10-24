@@ -1,13 +1,15 @@
-"""
-自定义jwt认证成功返回数据
-:token  返回的jwt
-:user   当前登录的用户信息[对象]
-:request 当前本次客户端提交过来的数据
-:role 角色
-"""
+import time
+import datetime
 
 
 def jwt_response_payload_handler(token, user=None):
+    """
+    自定义jwt认证成功返回数据
+    :token  返回的jwt
+    :user   当前登录的用户信息[对象]
+    :request 当前本次客户端提交过来的数据
+    :role 角色
+    """
     if user.first_name:
         name = user.first_name
     else:
@@ -45,3 +47,16 @@ def get_domain(environment):
     if environment == 2:
         environment = "https://erp.yjzf.com"
     return {"environment": environment}
+
+
+class GetTime:
+    @staticmethod
+    def get_current_time():
+        """
+        获取当前时间的时间戳和北京时间
+        """
+
+        current_time = round(time.time() * 1000)
+        current_time_beijing = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+
+        return {"current_time": current_time, "current_time_beijing": current_time_beijing}

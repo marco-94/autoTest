@@ -24,7 +24,7 @@ class CaseGroupListSerializer(BaseSerializer):
                                            help_text='所属项目ID')
     # 设置非必填
     case_group_desc = serializers.CharField(required=False, help_text='用例组描述')
-    case_group_name = serializers.CharField(required=True, help_text='用例组名称')
+    case_group_name = serializers.CharField(required=False, help_text='用例组名称')
     editor = serializers.CharField(required=False, help_text='创建人/更新人')
     case_group_version = serializers.CharField(read_only=True, required=False, help_text='用例组版本')
 
@@ -77,8 +77,7 @@ class CaseGroupEditSerializer(BaseSerializer):
 
         fields = ('case_group_id',
                   'case_group_name',
-                  'case_group_desc',
-                  'editor',)
+                  'case_group_desc')
 
 
 class CaseGroupDisableSerializer(BaseSerializer):

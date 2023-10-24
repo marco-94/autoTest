@@ -65,3 +65,38 @@ class OssFileSerializer(BaseSerializer):
             "updated_tm",
             "create_tm_format",
             "update_tm_format")
+
+
+class OssFilesSerializer(BaseSerializer):
+    """文件上传"""
+    file_id = serializers.IntegerField(read_only=True, help_text='文件ID')
+    file = serializers.FileField(source="file_path", required=True, help_text="文件地址")
+    remark = serializers.CharField(required=False, help_text='备注信息')
+    editor = serializers.CharField(read_only=True, help_text='创建人/更新人')
+    file_size = serializers.CharField(read_only=True, help_text='文件大小')
+    file_type = serializers.CharField(read_only=True, help_text='文件类型')
+    file_name = serializers.CharField(read_only=True, help_text='文件名')
+
+    class Meta:
+        model = OssFiles
+
+        fields = (
+            'file',
+            'file_id',
+            'remark',
+            'editor',
+            'file_size',
+            'file_type',
+            'file_name',
+            "created_tm",
+            "updated_tm",
+            "create_tm_format",
+            "update_tm_format")
+
+
+class OssFileUpdateSerializer(BaseSerializer):
+    """上传文件更新"""
+
+    class Meta:
+        model = OssFiles
+        fields = '_all_'
