@@ -33,10 +33,15 @@ class ModuleListSerializer(BaseSerializer):
 
     # 设置只读只写
     is_disable = serializers.BooleanField(required=False, help_text='是否禁用(0：启用，1：禁用)')
-    belong_project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
-                                                  slug_field="project_id",
-                                                  required=True,
-                                                  help_text='所属项目ID')
+    project_id = serializers.IntegerField(read_only=True, required=False, source="belong_project.project_id",
+                                          help_text='所属项目ID')
+    project_name = serializers.CharField(read_only=True, required=False, source="belong_project.project_name",
+                                         help_text='所属项目')
+    project = serializers.CharField(write_only=True, required=False, help_text='所属项目')
+    # belong_project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
+    #                                               slug_field="project_id",
+    #                                               required=True,
+    #                                               help_text='所属项目ID')
     # 设置非必填
     module_desc = serializers.CharField(required=False, help_text='模块描述')
     module_name = serializers.CharField(required=True, help_text='模块名称')
@@ -49,7 +54,9 @@ class ModuleListSerializer(BaseSerializer):
         fields = ('module_id',
                   'module_name',
                   'module_version',
-                  'belong_project',
+                  'project',
+                  'project_id',
+                  'project_name',
                   'created_start_tm',
                   'created_end_tm',
                   'is_disable',

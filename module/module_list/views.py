@@ -16,6 +16,8 @@ from autoTest.base.base_views import GetLoginUser
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_jwt.settings import api_settings
 from autoTest.common.set_version import SetVersion
+from django.db.models import Q
+from django.core import serializers
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
@@ -40,7 +42,7 @@ class ModuleListView(mixins.ListModelMixin, generics.GenericAPIView):
         """模块列表信息 """
         try:
             module_id = request.data.get("module_id")
-            project_id = request.data.get("project_id")
+            project = request.data.get("project")
             module_name = request.data.get("module_name")
             is_disable = request.data.get("is_disable")
             editor = request.data.get("editor")
@@ -64,8 +66,6 @@ class ModuleListView(mixins.ListModelMixin, generics.GenericAPIView):
 
         if module_id:
             search_dict["module_id"] = module_id
-        if project_id:
-            search_dict["belong_project_id"] = project_id
         if module_name:
             search_dict["module_name__icontains"] = module_name
         if editor:
@@ -75,13 +75,44 @@ class ModuleListView(mixins.ListModelMixin, generics.GenericAPIView):
         if "is_disable" in search_dict and not is_disable:
             search_dict["is_disable"] = 0
 
+        # 所属项目列表
+        project_list = []
+
+        if project:
+            # 如果输入的字符串为整数（精确搜索）
+            if project.isdigit():
+                try:
+                    ProjectList.objects.get(project_id__exact=int(project))
+                    project_list.append(int(project))
+                except ProjectList.DoesNotExist:
+                    try:
+                        project_id = ProjectList.objects.filter(project_name__icontains=project).values('project_id')
+                        if project_id:
+                            for i in project_id:
+                                project_list.append(int(i["project_id"]))
+                        else:
+                            return APIResponse(200, '查询成功', success=True)
+                    except ProjectList.DoesNotExist:
+                        return APIResponse(200, '查询成功', success=True)
+            # 如果输入的字符串不为整数（精确搜索）
+            else:
+                try:
+                    project_id = ProjectList.objects.filter(project_name__icontains=project).values('project_id')
+                    for i in project_id:
+                        project_list.append(int(i["project_id"]))
+                except ProjectList.DoesNotExist:
+                    return APIResponse(200, '查询成功', success=True)
+
         # 入参时间格式化
         if created_start_time and created_end_time:
             SearchTime().search_time_conversion(created_start_time, created_end_time, search_dict)
-
+        print(project_list)
         # 由于覆盖了list方法，导致丢失了分页返回，故加上分页返回
-        page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
-
+        if not project_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
+        else:
+            page_queryset = self.paginate_queryset(
+                queryset=self.queryset.filter(**search_dict, belong_project_id__in=project_list))
         # post请求加上分页条件查询
         if page_queryset is not None:
             serializer = self.get_serializer(page_queryset, many=True)
