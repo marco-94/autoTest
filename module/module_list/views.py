@@ -78,8 +78,9 @@ class ModuleListView(mixins.ListModelMixin, generics.GenericAPIView):
         # 所属项目列表
         project_list = []
 
+        # 所属项目搜索：项目ID为精确搜索，项目名称为模糊搜索
         if project:
-            # 如果输入的字符串为整数（精确搜索）
+            # 如果输入的字符串为整数
             if project.isdigit():
                 try:
                     ProjectList.objects.get(project_id__exact=int(project))
@@ -94,7 +95,7 @@ class ModuleListView(mixins.ListModelMixin, generics.GenericAPIView):
                             return APIResponse(200, '查询成功', success=True)
                     except ProjectList.DoesNotExist:
                         return APIResponse(200, '查询成功', success=True)
-            # 如果输入的字符串不为整数（精确搜索）
+            # 如果输入的字符串不为整数
             else:
                 try:
                     project_id = ProjectList.objects.filter(project_name__icontains=project).values('project_id')
@@ -106,21 +107,20 @@ class ModuleListView(mixins.ListModelMixin, generics.GenericAPIView):
         # 入参时间格式化
         if created_start_time and created_end_time:
             SearchTime().search_time_conversion(created_start_time, created_end_time, search_dict)
-        print(project_list)
+
         # 由于覆盖了list方法，导致丢失了分页返回，故加上分页返回
-        if not project_list:
-            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
-        else:
+        page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
+        if project_list:
             page_queryset = self.paginate_queryset(
                 queryset=self.queryset.filter(**search_dict, belong_project_id__in=project_list))
+
         # post请求加上分页条件查询
+        serializer = self.get_serializer(instance=page_queryset, many=True)
+
         if page_queryset is not None:
             serializer = self.get_serializer(page_queryset, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer_data = self.get_serializer(instance=page_queryset, many=True)
-
-        return self.get_paginated_response(serializer_data.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class ModuleCreateViews(mixins.CreateModelMixin, GenericViewSet):

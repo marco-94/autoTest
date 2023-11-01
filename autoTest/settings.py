@@ -131,11 +131,11 @@ SWAGGER_SETTINGS = {
             'in': 'header',
             'name': 'Authorization'
         },
-        "basic": {
-            'type': 'basic'
-        }
+        # "basic": {
+        #     'type': 'basic'
+        # }
     },
-    'USE_SESSION_AUTH': True,
+    'USE_SESSION_AUTH': False,
     # 'LOGIN_URL': 'rest_framework:login',
     'LOGIN_URL': '/user/log_in',
     # 'LOGOUT_URL': 'rest_framework:logout',
@@ -147,7 +147,7 @@ SWAGGER_SETTINGS = {
         'delete',
         'patch'
     ],
-    'DEFAULT_INFO': 'test0905.urls.swagger_info',
+    'DEFAULT_INFO': 'autoTest.urls.swagger_info',
 }
 
 AUTH_USER_MODEL = 'user_list.Account'

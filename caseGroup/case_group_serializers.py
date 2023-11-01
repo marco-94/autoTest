@@ -13,15 +13,12 @@ class CaseGroupListSerializer(BaseSerializer):
 
     # 设置只读只写
     is_disable = serializers.BooleanField(read_only=True, help_text='是否禁用(0：启用，1：禁用)')
-    module = serializers.SlugRelatedField(queryset=ModuleList.objects.all(),
-                                          slug_field="module_id",
-                                          required=True,
-                                          help_text='所属模块ID')
-
-    project = serializers.SlugRelatedField(queryset=ProjectList.objects.all(),
-                                           slug_field="project_id",
-                                           required=True,
-                                           help_text='所属项目ID')
+    module_id = serializers.IntegerField(read_only=True, source='module.module_id', help_text='所属模块ID')
+    module_name = serializers.CharField(read_only=True, source='module.module_name', help_text='所属模块名称')
+    module = serializers.CharField(write_only=True, required=False, help_text='所属模块')
+    project_id = serializers.IntegerField(read_only=True, source='project.project_id', help_text='所属项目ID')
+    project_name = serializers.CharField(read_only=True, source='project.project_name', help_text='所属项目名称')
+    project = serializers.CharField(write_only=True, required=False, help_text='所属项目')
     # 设置非必填
     case_group_desc = serializers.CharField(required=False, help_text='用例组描述')
     case_group_name = serializers.CharField(required=False, help_text='用例组名称')
@@ -35,7 +32,11 @@ class CaseGroupListSerializer(BaseSerializer):
                   'case_group_name',
                   'case_group_version',
                   'module',
+                  'module_id',
+                  'module_name',
                   'project',
+                  'project_id',
+                  'project_name',
                   'created_start_tm',
                   'created_end_tm',
                   'is_disable',

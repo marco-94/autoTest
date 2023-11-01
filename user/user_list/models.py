@@ -2,6 +2,7 @@ from django.db import models
 import hashlib
 from django.contrib.auth.models import AbstractUser
 from autoTest.base.base_model import BaseModel
+from autoTest.common.global_configuration import global_id
 
 
 class Account(AbstractUser, BaseModel):
@@ -22,6 +23,8 @@ class Account(AbstractUser, BaseModel):
         md5 = hashlib.md5()
         md5.update(self.password.encode())
         self.password = md5.hexdigest()
+        if not self.user_id:
+            self.user_id = global_id()["work_id"]
         super(Account, self).save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
@@ -41,6 +44,12 @@ class UserRole(BaseModel):
         db_table = 'user_role'
         verbose_name = '用户登录信息'
         verbose_name_plural = verbose_name
+
+    def save(self, *args, **kwargs):
+        """新增时，自定义主键"""
+        if not self.user_role_id:
+            self.user_role_id = global_id()["work_id"]
+        return super(UserRole, self).save(*args, **kwargs)
 
     # 插拔式连表查询
     @property

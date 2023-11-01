@@ -1,6 +1,7 @@
 from django.db import models
 from user.user_list.models import Account
 from autoTest.base.base_model import BaseModel
+from autoTest.common.global_configuration import global_id
 
 
 class UserDetail(BaseModel):
@@ -15,6 +16,12 @@ class UserDetail(BaseModel):
         db_table = 'user_detail'
         verbose_name = '用户详情信息'
         verbose_name_plural = verbose_name
+
+    def save(self, *args, **kwargs):
+        """新增时，自定义主键"""
+        if not self.user_detail_id:
+            self.user_detail_id = global_id()["work_id"]
+        return super(UserDetail, self).save(*args, **kwargs)
 
     # 插拔式连表查询
     @property

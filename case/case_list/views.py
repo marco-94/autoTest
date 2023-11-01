@@ -6,6 +6,7 @@ from autoTest.common.render_response import APIResponse
 from rest_framework.permissions import IsAuthenticated
 from autoTest.common.auth import CustomJsonToken
 from module.module_list.models import ModuleList
+from project.project_list.models import ProjectList
 from caseGroup.models import CaseGroupList
 from case.case_list.models import *
 from case.case_serializers import *
@@ -109,8 +110,10 @@ class CaseListView(mixins.ListModelMixin, generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         """用例列表信息 """
         try:
+            case_group = request.data.get("case_group")
+            module = request.data.get("module")
+            project = request.data.get("project")
             case_id = request.data.get("case_id")
-            module_id = request.data.get("module_id")
             case_name = request.data.get("case_name")
             is_disable = request.data.get("is_disable")
             editor = request.data.get("editor")
@@ -134,8 +137,6 @@ class CaseListView(mixins.ListModelMixin, generics.GenericAPIView):
 
         if case_id:
             search_dict["case_id"] = case_id
-        if module_id:
-            search_dict["module_id"] = module_id
         if case_name:
             search_dict["case_name__icontains"] = case_name
         if editor:
@@ -145,21 +146,141 @@ class CaseListView(mixins.ListModelMixin, generics.GenericAPIView):
         if "is_disable" in search_dict and not is_disable:
             search_dict["is_disable"] = 0
 
+        # 所属项目查询
+        project_list = []
+
+        # 所属项目搜索：项目ID为精确搜索，项目名称为模糊搜索
+        if project:
+            # 如果输入的字符串为整数
+            if project.isdigit():
+                try:
+                    ProjectList.objects.get(project_id__exact=int(project))
+                    project_list.append(int(project))
+                except ProjectList.DoesNotExist:
+                    try:
+                        project_id = ProjectList.objects.filter(project_name__icontains=project).values(
+                            'project_id')
+                        if project_id:
+                            for i in project_id:
+                                project_list.append(int(i["project_id"]))
+                        else:
+                            return APIResponse(200, '查询成功', success=True)
+                    except ProjectList.DoesNotExist:
+                        return APIResponse(200, '查询成功', success=True)
+            # 如果输入的字符串不为整数
+            else:
+                try:
+                    project_id = ProjectList.objects.filter(project_name__icontains=project).values('project_id')
+                    for i in project_id:
+                        project_list.append(int(i["project_id"]))
+                except ProjectList.DoesNotExist:
+                    return APIResponse(200, '查询成功', success=True)
+
+        # 所属模块查询
+        module_list = []
+
+        # 所属模块搜索：模块ID为精确搜索，模块名称为模糊搜索
+        if module:
+            # 如果输入的字符串为整数
+            if module.isdigit():
+                try:
+                    ModuleList.objects.get(module_id__exact=int(module))
+                    module_list.append(int(module))
+                except ModuleList.DoesNotExist:
+                    try:
+                        module_id = ModuleList.objects.filter(module_name__icontains=module).values('module_id')
+                        if module_id:
+                            for i in module_id:
+                                module_list.append(int(i["module_id"]))
+                        else:
+                            return APIResponse(200, '查询成功', success=True)
+                    except ModuleList.DoesNotExist:
+                        return APIResponse(200, '查询成功', success=True)
+            # 如果输入的字符串不为整数
+            else:
+                try:
+                    module_id = ModuleList.objects.filter(module_name__icontains=module).values('module_id')
+                    for i in module_id:
+                        module_list.append(int(i["module_id"]))
+                except ModuleList.DoesNotExist:
+                    return APIResponse(200, '查询成功', success=True)
+
+        # 所属用例组查询
+        case_group_list = []
+
+        # 所属模块搜索：模块ID为精确搜索，模块名称为模糊搜索
+        if case_group:
+            # 如果输入的字符串为整数
+            if case_group.isdigit():
+                try:
+                    CaseGroupList.objects.get(case_group_id__exact=int(case_group))
+                    case_group_list.append(int(case_group))
+                except CaseGroupList.DoesNotExist:
+                    try:
+                        case_group_id = CaseGroupList.objects.filter(case_group_name__icontains=case_group).values('case_group_id')
+                        if case_group_id:
+                            for i in case_group_id:
+                                case_group_list.append(int(i["case_group_id"]))
+                        else:
+                            return APIResponse(200, '查询成功', success=True)
+                    except CaseGroupList.DoesNotExist:
+                        return APIResponse(200, '查询成功', success=True)
+            # 如果输入的字符串不为整数
+            else:
+                try:
+                    case_group_id = CaseGroupList.objects.filter(case_group_name__icontains=case_group).values('case_group_id')
+                    for i in case_group_id:
+                        case_group_list.append(int(i["case_group_id"]))
+                except CaseGroupList.DoesNotExist:
+                    return APIResponse(200, '查询成功', success=True)
+
         # 入参时间格式化
         if created_start_time and created_end_time:
             SearchTime().search_time_conversion(created_start_time, created_end_time, search_dict)
 
         # 由于覆盖了list方法，导致丢失了分页返回，故加上分页返回
         page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
+        # 仅筛选所属用例组
+        if case_group_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 group_id__in=case_group_list))
+        # 仅筛选所属模块
+        if module_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 module_id__in=module_list))
+        # 仅筛选所属项目
+        if project_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 project_id__in=project_list))
+        # 同时筛选所属模块和项目
+        if module_list and project_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 project_id__in=project_list,
+                                                                                 module_id__in=module_list))
+        # 同时筛选所属模块和用例组
+        if module_list and case_group_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 group_id__in=case_group_list,
+                                                                                 module_id__in=module_list))
+        # 同时筛选所属项目和用例组
+        if project_list and case_group_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 project_id__in=project_list,
+                                                                                 group_id__in=case_group_list))
+        # 同时筛选所属模块、项目、用例组
+        if module_list and project_list and case_group_list:
+            page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict,
+                                                                                 project_id__in=project_list,
+                                                                                 case_group_id__in=case_group_list,
+                                                                                 module_id__in=module_list))
 
         # post请求加上分页条件查询
+        serializer = self.get_serializer(instance=page_queryset, many=True)
+
         if page_queryset is not None:
             serializer = self.get_serializer(page_queryset, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer_data = self.get_serializer(instance=page_queryset, many=True)
-
-        return self.get_paginated_response(serializer_data.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class CaseEditViews(mixins.UpdateModelMixin, generics.GenericAPIView):

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from autoTest.common.render_response import APIResponse
 from rest_framework.permissions import IsAuthenticated
 from autoTest.common.auth import CustomJsonToken
+from module.module_list.models import ModuleList
 from project.project_list.models import ProjectList
 from project.project_detail.models import ProjectDetail
 from project.project_serializers import *
@@ -67,10 +68,11 @@ class ProjectListView(mixins.ListModelMixin, generics.GenericAPIView):
             search_dict["project_name__icontains"] = project_name
         if editor:
             search_dict["editor__icontains"] = editor
-        if is_disable:
-            search_dict["is_disable"] = 1
-        if not is_disable:
-            search_dict["is_disable"] = 0
+        if "is_disable" in search_dict.keys():
+            if is_disable:
+                search_dict["is_disable"] = 1
+            if not is_disable:
+                search_dict["is_disable"] = 0
 
         # 入参时间格式化
         if created_start_time and created_end_time:
@@ -80,13 +82,11 @@ class ProjectListView(mixins.ListModelMixin, generics.GenericAPIView):
         page_queryset = self.paginate_queryset(queryset=self.queryset.filter(**search_dict))
 
         # post请求加上分页条件查询
+        serializer = self.get_serializer(instance=page_queryset, many=True)
         if page_queryset is not None:
             serializer = self.get_serializer(page_queryset, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer_data = self.get_serializer(instance=page_queryset, many=True)
-
-        return self.get_paginated_response(serializer_data.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class ProjectCreateViews(mixins.CreateModelMixin, GenericViewSet):
