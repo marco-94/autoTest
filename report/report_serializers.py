@@ -15,16 +15,12 @@ class ReportListSerializer(BaseSerializer):
     report_desc = serializers.CharField(required=False, help_text='报告描述')
     report_name = serializers.CharField(required=False, help_text='报告名称')
     editor = serializers.CharField(required=False, help_text='创建人/更新人')
-
-    case = serializers.SlugRelatedField(queryset=CaseList.objects.all(),
-                                        slug_field="case_id",
-                                        required=False,
-                                        help_text='所属用例ID')
-
-    group = serializers.SlugRelatedField(queryset=CaseGroupList.objects.all(),
-                                         slug_field="case_group_id",
-                                         required=False,
-                                         help_text='所属用例组ID')
+    case_group_id = serializers.IntegerField(read_only=True, source="group.case_group_id", help_text='所属用例组ID')
+    case_group_name = serializers.CharField(read_only=True, source="group.case_group_name", help_text='所属用例组名称')
+    case_group = serializers.CharField(write_only=True, required=False, help_text='所属用例组')
+    case_id = serializers.IntegerField(read_only=True, source="case.case_id", help_text='所属用例ID')
+    case_name = serializers.CharField(read_only=True, source="case.case_name", help_text='所属用例名称')
+    case = serializers.CharField(write_only=True, required=False, help_text='所属用例')
 
     class Meta:
         model = ReportList
@@ -36,7 +32,11 @@ class ReportListSerializer(BaseSerializer):
                   'report_desc',
                   'editor',
                   'case',
-                  'group',
+                  'case_id',
+                  'case_name',
+                  'case_group',
+                  'case_group_id',
+                  'case_group_name',
                   "created_tm",
                   "updated_tm",
                   "create_tm_format",
