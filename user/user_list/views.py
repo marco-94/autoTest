@@ -179,6 +179,10 @@ class UpdatePasswordView(mixins.UpdateModelMixin, GenericAPIView):
         new_password = request.data.get('new_password')
         confirm_password = request.data.get('confirm_password')
 
+        for item in ["user_id", "old_password", "new_password", "confirm_password"]:
+            if item not in request.data.items():
+                return APIResponse(400013, '请检查输入字段是否正确(必填字段、未定义字段)', success=False)
+
         md5 = hashlib.md5()
         md5.update(old_password.encode())
         old_password_md5 = md5.hexdigest()
